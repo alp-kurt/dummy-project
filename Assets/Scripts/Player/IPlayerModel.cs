@@ -1,20 +1,25 @@
 using System;
 using UniRx;
+using UnityEngine;
 
 namespace Scripts
 {
     public interface IPlayerModel
     {
-        // Normalized (0..1) health for easy UI binding
-        IReadOnlyReactiveProperty<float> CurrentHealth { get; }
+        // Latest input vector provided by the presenter (normalized or not)
+        IReadOnlyReactiveProperty<Vector2> MoveInput { get; }
 
-        // Expose max health (hp units) for mapping integer enemy damage
-        float MaxHealth { get; }
+        // High-level state the rest of the game can observe
+        IReadOnlyReactiveProperty<PlayerMovementState> MovementState { get; }
 
-        // Fired once when health reaches zero
-        IObservable<Unit> Died { get; }
+        // Convenience boolean
+        IReadOnlyReactiveProperty<bool> IsMoving { get; }
 
-        // Apply damage in "hp" units (will be normalized internally)
-        void ApplyDamage(int amount);
+        // Edge events (fire only on transitions)
+        IObservable<Unit> StartedMoving { get; }
+        IObservable<Unit> StoppedMoving { get; }
+
+        // Presenter calls this every frame (or when input changes)
+        void SetMoveInput(Vector2 input);
     }
 }
