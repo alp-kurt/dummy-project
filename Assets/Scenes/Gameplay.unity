@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_enemyPrefab: {fileID: 4762150085740561046, guid: 047f0c6f563e448c68134f6fb9e7a605, type: 3}
   m_activeParent: {fileID: 1183987737}
-  m_pooledParent: {fileID: 0}
+  m_pooledParent: {fileID: 1211915387}
 --- !u!4 &92577810
 Transform:
   m_ObjectHideFlags: 0
@@ -204,6 +204,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _joyStick: {fileID: 932757184}
   _playerView: {fileID: 6598591594767267528}
+  _playerHealthView: {fileID: 6598591594767267535}
 --- !u!4 &343482765
 Transform:
   m_ObjectHideFlags: 0
@@ -706,6 +707,17 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 1057418709907250524, guid: 88589e8513862483c82c6fe8ca24de4c, type: 3}
   m_PrefabInstance: {fileID: 6598591594767267527}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6598591594767267535 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7073563614307819930, guid: 88589e8513862483c82c6fe8ca24de4c, type: 3}
+  m_PrefabInstance: {fileID: 6598591594767267527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e04c963f8a967407cbba3ec123e644e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
