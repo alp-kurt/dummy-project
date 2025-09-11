@@ -1,68 +1,57 @@
 using System;
-using UniRx;
 using UnityEngine;
 using Zenject;
+using UniRx;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Binds input → PlayerModel (state), model.MoveInput → PlayerView.Move (visuals),
-    /// and enemy contacts → PlayerHealthModel.ApplyDamage.
-    /// </summary>
-    public sealed class PlayerPresenter : IInitializable
+    public sealed class PlayerPresenter : IInitializable, ITickable, IDisposable
     {
         private readonly JoystickView m_joystickView;
-        private readonly PlayerView m_playerView;
-        private readonly IPlayerModel m_playerModel;
-        private readonly IPlayerHealthModel m_healthModel;
-        private readonly CompositeDisposable m_disposer;
+        private readonly PlayerView m_view;
+        private readonly IPlayerModel m_model;
+        private readonly IPlayerHealthModel m_health;
+        private readonly TimeSpan m_hitCooldown = TimeSpan.FromMilliseconds(350);
+        private float m_nextHitTime;
+        private bool m_disposed;
+        private IDisposable _inputSub;
 
-        private static readonly TimeSpan k_HitCooldown = TimeSpan.FromMilliseconds(350);
-        private const int k_DefaultContactDamage = 1; // fallback if enemy didn't set it
-
-        public PlayerPresenter(
-            JoystickView joystickView,
-            PlayerView playerView,
-            IPlayerModel playerModel,
-            IPlayerHealthModel healthModel,
-            CompositeDisposable disposer)
+        public PlayerPresenter(JoystickView joystickView, PlayerView view, IPlayerModel model, IPlayerHealthModel health)
         {
             m_joystickView = joystickView;
-            m_playerView = playerView;
-            m_playerModel = playerModel;
-            m_healthModel = healthModel;
-            m_disposer = disposer;
+            m_view = view;
+            m_model = model;
+            m_health = health;
         }
 
         public void Initialize()
         {
-            // Input -> model
-            m_joystickView.OnInput
-                .Subscribe(m_playerModel.SetMoveInput)
-                .AddTo(m_disposer);
+            _inputSub = m_joystickView.OnInput
+            .DistinctUntilChanged()
+            .Subscribe(m_model.SetMoveInput);
 
-            // Move every frame from latest input
-            Observable.EveryUpdate()
-                .Select(_ => m_playerModel.MoveInput.Value)
-                .Subscribe(m_playerView.Move)
-                .AddTo(m_disposer);
+            m_view.OnEnemyCollided += e =>
+            {
+                if (Time.time < m_nextHitTime) return;
+                m_nextHitTime = Time.time + (float)m_hitCooldown.TotalSeconds;
+                var dmg = (e != null && e.ContactDamage > 0) ? e.ContactDamage : 1;
+                m_health.ApplyDamage(dmg);
+            };
+        }
 
-            // Movement state edges (optional)
-            m_playerModel.StartedMoving.Subscribe(_ => { /* hook animations */ }).AddTo(m_disposer);
-            m_playerModel.StoppedMoving.Subscribe(_ => { /* hook animations */ }).AddTo(m_disposer);
+        public void Tick()
+        {
+            var delta = m_model.Step(Time.deltaTime);
+            m_view.Translate(delta);
+        }
 
-            // Enemy contact -> apply ENEMY'S damage
-            m_playerView.EnemyCollided
-                .ThrottleFirst(k_HitCooldown)
-                .Subscribe(enemyView =>
-                {
-                    int damage = enemyView != null && enemyView.ContactDamage > 0
-                        ? enemyView.ContactDamage
-                        : k_DefaultContactDamage;
-
-                    m_healthModel.ApplyDamage(damage);
-                })
-                .AddTo(m_disposer);
+        public void Dispose()
+        {
+            if (m_disposed) return;
+            _inputSub?.Dispose();
+            m_view.OnEnemyCollided -= null; 
+            m_model.OnMovementStateChanged -= null;
+            m_disposed = true;
         }
     }
 }

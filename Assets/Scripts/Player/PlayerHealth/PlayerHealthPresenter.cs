@@ -3,34 +3,38 @@ using Zenject;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Presenter that binds PlayerHealthModel to PlayerHealthView.
-    /// </summary>
     public sealed class PlayerHealthPresenter : IInitializable
     {
         private readonly PlayerHealthView _view;
         private readonly IPlayerHealthModel _model;
-        private readonly CompositeDisposable _disposer;
 
-        public PlayerHealthPresenter(PlayerHealthView view,
-                                     IPlayerHealthModel model,
-                                     CompositeDisposable disposer)
+        public PlayerHealthPresenter(PlayerHealthView view, IPlayerHealthModel model)
         {
             _view = view;
             _model = model;
-            _disposer = disposer;
         }
 
         public void Initialize()
         {
+            // Bind health to UI; auto-disposed with the view’s lifecycle
             _model.CurrentHealth01
-                .DistinctUntilChanged()
-                .Subscribe(_view.SetHealth01)
-                .AddTo(_disposer);
+                  .DistinctUntilChanged()
+                  .Subscribe(_view.SetHealth01)
+                  .AddTo(_view);
 
+            // Optional: hook damage/heal for quick effects/logs
+            _model.Damaged
+                  .Subscribe(_ => { /* e.g., hit flash, SFX */ })
+                  .AddTo(_view);
+
+            _model.Healed
+                  .Subscribe(_ => { /* e.g., heal sparkle, SFX */ })
+                  .AddTo(_view);
+
+            // Single-fire death hook
             _model.Died
-                .Subscribe(_ => UnityEngine.Debug.Log("[Player] Died"))
-                .AddTo(_disposer);
+                  .Subscribe(_ => UnityEngine.Debug.Log("[Player] Died"))
+                  .AddTo(_view);
         }
     }
 }

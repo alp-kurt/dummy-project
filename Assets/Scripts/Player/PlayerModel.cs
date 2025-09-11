@@ -1,57 +1,38 @@
 using System;
-using UniRx;
 using UnityEngine;
 
 namespace Scripts
 {
     public sealed class PlayerModel : IPlayerModel
     {
-        // Deadzone avoids jitter when joystick rests near zero
-        private const float k_MoveDeadzone = 0.02f;
+        private const float kDeadzone = 0.02f;
 
-        private readonly ReactiveProperty<Vector2> m_moveInput = new ReactiveProperty<Vector2>(Vector2.zero);
-        private readonly ReactiveProperty<PlayerMovementState> m_movementState =
-            new ReactiveProperty<PlayerMovementState>(PlayerMovementState.Idle);
-        private readonly ReadOnlyReactiveProperty<bool> m_isMoving;
+        public Vector2 MoveInput { get; private set; }
+        public PlayerMovementState MovementState { get; private set; } = PlayerMovementState.Idle;
 
-        private readonly Subject<Unit> m_startedMoving = new Subject<Unit>();
-        private readonly Subject<Unit> m_stoppedMoving = new Subject<Unit>();
+        private readonly float m_speed;
 
-        public IReadOnlyReactiveProperty<Vector2> MoveInput => m_moveInput;
-        public IReadOnlyReactiveProperty<PlayerMovementState> MovementState => m_movementState;
-        public IReadOnlyReactiveProperty<bool> IsMoving => m_isMoving;
+        public event Action<PlayerMovementState> OnMovementStateChanged;
 
-        public IObservable<Unit> StartedMoving => m_startedMoving;
-        public IObservable<Unit> StoppedMoving => m_stoppedMoving;
-
-        public PlayerModel()
-        {
-            // Derive IsMoving from MovementState
-            m_isMoving = m_movementState
-                .Select(s => s == PlayerMovementState.Moving)
-                .DistinctUntilChanged()
-                .ToReadOnlyReactiveProperty();
-        }
+        public PlayerModel(float speed = 4f) { m_speed = Mathf.Max(0f, speed); }
 
         public void SetMoveInput(Vector2 input)
         {
-            // Store raw input for the presenter/view to consume
-            m_moveInput.Value = input;
-
-            // Compute state
-            bool moving = input.sqrMagnitude >= k_MoveDeadzone * k_MoveDeadzone;
-            var nextState = moving ? PlayerMovementState.Moving : PlayerMovementState.Idle;
-
-            if (nextState != m_movementState.Value)
+            MoveInput = input;
+            var moving = input.sqrMagnitude >= kDeadzone * kDeadzone;
+            var next = moving ? PlayerMovementState.Moving : PlayerMovementState.Idle;
+            if (next != MovementState)
             {
-                var prev = m_movementState.Value;
-                m_movementState.Value = nextState;
-
-                if (nextState == PlayerMovementState.Moving)
-                    m_startedMoving.OnNext(Unit.Default);
-                else
-                    m_stoppedMoving.OnNext(Unit.Default);
+                MovementState = next;
+                OnMovementStateChanged?.Invoke(MovementState);
             }
+        }
+
+        public Vector3 Step(float dt)
+        {
+            if (MovementState == PlayerMovementState.Idle) return Vector3.zero;
+            var v = MoveInput.normalized * m_speed * dt;
+            return new Vector3(v.x, v.y, 0f);
         }
     }
 }
