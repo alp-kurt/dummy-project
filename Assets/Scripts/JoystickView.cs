@@ -54,6 +54,7 @@ namespace Scripts
         {
             _isDragging = false;
             _stick.rectTransform.localPosition = Vector2.zero;
+            _onInput.OnNext(Vector2.zero);
         }
     }
 }
