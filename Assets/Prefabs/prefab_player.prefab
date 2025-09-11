@@ -179,7 +179,6 @@ GameObject:
   - component: {fileID: 7303482460933082913}
   - component: {fileID: 6423869145328326845}
   - component: {fileID: 5825845153084015628}
-  - component: {fileID: 7073563614307819930}
   m_Layer: 0
   m_Name: prefab_player
   m_TagString: Untagged
@@ -216,7 +215,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f87665104b5640cf96308e5f68356cfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
 --- !u!212 &6423869145328326845
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -304,20 +302,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 1.5
---- !u!114 &7073563614307819930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608911986764994325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e04c963f8a967407cbba3ec123e644e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  healthBar: {fileID: 2184793223118375027}
-  tweenSeconds: 0.2
 --- !u!1 &4223181340795448850
 GameObject:
   m_ObjectHideFlags: 0
@@ -505,6 +489,7 @@ GameObject:
   m_Component:
   - component: {fileID: 237607390032598236}
   - component: {fileID: 2184793223118375027}
+  - component: {fileID: 2229480284559372504}
   m_Layer: 0
   m_Name: slider_health
   m_TagString: Untagged
@@ -584,6 +569,20 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2229480284559372504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5294873680575994069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e04c963f8a967407cbba3ec123e644e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthBar: {fileID: 2184793223118375027}
+  tweenSeconds: 0.2
 --- !u!1 &8912317326428989109
 GameObject:
   m_ObjectHideFlags: 0
