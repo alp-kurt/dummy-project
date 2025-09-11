@@ -18,5 +18,5 @@ MonoBehaviour:
   - stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
     weight: 5
   spawnIntervalSeconds: 2
-  densityPerTick: 2
-  offscreenPadding: 3
+  densityPerTick: 6
+  offscreenPadding: 1
