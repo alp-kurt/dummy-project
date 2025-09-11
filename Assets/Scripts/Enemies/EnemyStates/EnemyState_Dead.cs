@@ -30,7 +30,6 @@ namespace Scripts
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(ctx.DeathDespawnSeconds),
                                     DelayType.DeltaTime, PlayerLoopTiming.Update, token);
-                ctx.PooledReason = EnemyPooledReason.Dead;
                 ctx.Transition(new EnemyState_Pooled());
             }
             catch (OperationCanceledException) { }

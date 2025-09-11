@@ -15,7 +15,7 @@ namespace Scripts
         [SerializeField] private Transform m_root;
 
         [Header("Combat")]
-        [SerializeField] private int m_contactDamage; // set by presenter from EnemyStats
+        [SerializeField] private int m_contactDamage;
         public int ContactDamage => m_contactDamage;
         public void SetContactDamage(int value) => m_contactDamage = Mathf.Max(0, value);
 

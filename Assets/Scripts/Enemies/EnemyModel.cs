@@ -1,51 +1,51 @@
 using System;
 using UniRx;
 using UnityEngine;
-using Zenject;
 
 namespace Scripts
 {
     public sealed class EnemyModel : IEnemyModel
     {
+        // Stats
         private int m_maxHealth;
         private float m_moveSpeed;
         private int m_damage;
 
-        private readonly ReactiveProperty<int> m_health = new ReactiveProperty<int>(0);
-        private readonly ReactiveProperty<int> m_maxHealthRP = new ReactiveProperty<int>(0);
-        private readonly ReactiveProperty<int> m_damageRP = new ReactiveProperty<int>(1);
-        private readonly ReactiveProperty<bool> m_canMove = new ReactiveProperty<bool>(false);
+        // Reactive data
+        private readonly ReactiveProperty<int> m_health = new(0);
+        private readonly ReactiveProperty<int> m_maxHealthRP = new(0);
+        private readonly ReactiveProperty<int> m_damageRP = new(1);
+        private readonly ReactiveProperty<bool> m_canMove = new(false);
 
-        private readonly EnemyEvents m_events;
+        // Events (Unit)
+        private readonly Subject<Unit> m_damaged = new();
+        private readonly Subject<Unit> m_died = new();
+        private readonly Subject<Unit> m_returned = new();
 
+        // FSM plumbing
         private EnemyContext m_ctx;
         private EnemyStateMachine m_fsm;
 
         private const float k_OffscreenDespawnSeconds = 2.0f;
         private const float k_DeathDespawnSeconds = 1.0f;
 
-        private int m_spawnId = 0;
-
+        // Public props
         public IReadOnlyReactiveProperty<int> Health => m_health;
         public IReadOnlyReactiveProperty<int> MaxHealth => m_maxHealthRP;
         public IReadOnlyReactiveProperty<int> Damage => m_damageRP;
         public float MoveSpeed => m_moveSpeed;
         public IReadOnlyReactiveProperty<bool> CanMove => m_canMove;
 
-        // Simple events (back-compat)
-        public IObservable<int> Damaged => m_events.DamagedAmount;
-        public IObservable<Unit> Died => m_events.Died;
-        public IObservable<Unit> ReturnedToPool => m_events.ReturnedToPool;
+        public IObservable<Unit> Damaged => m_damaged;
+        public IObservable<Unit> Died => m_died;
+        public IObservable<Unit> ReturnedToPool => m_returned;
 
-        // Typed events
-        public IObservable<EnemyDamagedEvent> DamagedTyped => m_events.Damaged;
-        public IObservable<EnemyDiedEvent> DiedTyped => m_events.DiedTyped;
-        public IObservable<EnemyReturnedToPoolEvent> ReturnedToPoolTyped => m_events.ReturnedToPoolTyped;
-
+        // Internal for context/states
         internal bool IsOnScreenInternal { get; private set; }
         internal EnemyStateMachine StateMachineInternal => m_fsm;
-
-        [Inject] public EnemyModel(EnemyEvents eventsHub) { m_events = eventsHub; }
+        internal void SetCanMoveInternal(bool v) => m_canMove.Value = v;
+        internal void EmitDiedInternal() => m_died.OnNext(Unit.Default);
+        internal void SwitchToPooledInternal() => m_returned.OnNext(Unit.Default);
 
         public void Initialize(EnemyStats stats)
         {
@@ -72,9 +72,6 @@ namespace Scripts
             IsOnScreenInternal = false;
             m_canMove.Value = true;
 
-            m_events.BeginLifetime(++m_spawnId);
-            m_ctx.PooledReason = EnemyPooledReason.Unknown;
-
             m_fsm.Transition(new EnemyState_OutOfScreen());
         }
 
@@ -87,7 +84,7 @@ namespace Scripts
             if (m_health.Value <= 0) return;
 
             m_health.Value = Mathf.Max(0, m_health.Value - dmg);
-            m_events.RaiseDamaged(dmg, m_health.Value);
+            m_damaged.OnNext(Unit.Default);
 
             if (m_health.Value <= 0)
             {
@@ -101,18 +98,9 @@ namespace Scripts
 
             var cur = m_fsm.Current;
             if (isOnScreen && cur is EnemyState_OutOfScreen)
-            {
                 m_fsm.Transition(new EnemyState_Active());
-            }
             else if (!isOnScreen && cur is EnemyState_Active)
-            {
                 m_fsm.Transition(new EnemyState_OutOfScreen());
-            }
         }
-
-        internal void SetCanMoveInternal(bool value) => m_canMove.Value = value;
-        internal void EmitDiedInternal() => m_events.RaiseDied();
-        internal void SwitchToPooledInternal(EnemyPooledReason reason = EnemyPooledReason.Unknown)
-            => m_events.RaiseReturnedToPool(reason);
     }
 }

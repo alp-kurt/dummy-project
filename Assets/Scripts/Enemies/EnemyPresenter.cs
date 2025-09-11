@@ -13,10 +13,6 @@ namespace Scripts
         private readonly EnemyStats m_stats;
         private readonly CompositeDisposable m_disposables = new CompositeDisposable();
 
-        [InjectOptional] private IEnemyUiService m_ui;
-        [InjectOptional] private IEnemySfxService m_sfx;
-        [InjectOptional] private IEnemyAnalyticsService m_analytics;
-
         [Inject]
         public EnemyPresenter(
             IEnemyModel model,
@@ -31,7 +27,6 @@ namespace Scripts
 
             m_model.Initialize(m_stats);
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
-
             m_view.SetContactDamage(m_stats.damage);
 
             m_model.Health
@@ -45,34 +40,10 @@ namespace Scripts
                 .Subscribe(m_model.SetOnScreen)
                 .AddTo(m_disposables);
 
-            m_model.DamagedTyped
-                .Subscribe(ev =>
-                {
-                    var pos = m_view.Position;
-                    m_ui?.OnDamaged(ev, pos);
-                    m_sfx?.OnDamaged(ev, pos);
-                    m_analytics?.OnDamaged(ev);
-                })
-                .AddTo(m_disposables);
-
-            m_model.DiedTyped
-                .Subscribe(ev =>
+            m_model.Died
+                .Subscribe(_ =>
                 {
                     m_view.Stop();
-                    var pos = m_view.Position;
-                    m_ui?.OnDied(ev, pos);
-                    m_sfx?.OnDied(ev, pos);
-                    m_analytics?.OnDied(ev);
-                })
-                .AddTo(m_disposables);
-
-            m_model.ReturnedToPoolTyped
-                .Subscribe(ev =>
-                {
-                    var pos = m_view.Position;
-                    m_ui?.OnReturned(ev, pos);
-                    m_sfx?.OnReturned(ev, pos);
-                    m_analytics?.OnReturned(ev);
                 })
                 .AddTo(m_disposables);
 
@@ -88,9 +59,7 @@ namespace Scripts
         public void SpawnFromPool()
         {
             m_model.ResetForSpawn();
-            // Re-assert contact damage in case the same view is reused with different stats someday
             m_view.SetContactDamage(m_stats.damage);
-
             m_view.SetActive(true);
             m_view.UpdateHealth(1f);
             m_view.SetHealthVisible(true);

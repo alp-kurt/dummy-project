@@ -6,8 +6,6 @@ namespace Scripts
         public float OffscreenDespawnSeconds { get; }
         public float DeathDespawnSeconds { get; }
 
-        public EnemyPooledReason PooledReason { get; set; } = EnemyPooledReason.Unknown;
-
         public EnemyContext(EnemyModel model, float offscreenSec, float deathSec)
         {
             Model = model;
@@ -21,7 +19,7 @@ namespace Scripts
 
         public void SetCanMove(bool canMove) => Model.SetCanMoveInternal(canMove);
         public void EmitDied() => Model.EmitDiedInternal();
-        public void PoolWithReason(EnemyPooledReason reason) => Model.SwitchToPooledInternal(reason);
+        public void Pool() => Model.SwitchToPooledInternal();
         public void Transition(IEnemyState next) => Model.StateMachineInternal.Transition(next);
     }
 }

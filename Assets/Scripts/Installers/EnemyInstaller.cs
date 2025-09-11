@@ -14,7 +14,6 @@ namespace Scripts
                 Container.Bind<WaveConfig>().FromInstance(m_waveConfig).AsSingle();
 
             // Per-enemy hub + model
-            Container.Bind<EnemyEvents>().AsTransient();
             Container.Bind<IEnemyModel>().To<EnemyModel>().AsTransient();
 
             // Presenter factory (view + stats)
@@ -23,10 +22,6 @@ namespace Scripts
             if (m_enemyPoolInScene != null && !Container.HasBinding<EnemyPool>())
                 Container.Bind<EnemyPool>().FromInstance(m_enemyPoolInScene).AsSingle();
 
-            // (Optional) UI/SFX/Analytics loggers
-            Container.Bind<IEnemyUiService>().To<EnemyUiLogger>().AsSingle();
-            Container.Bind<IEnemySfxService>().To<EnemySfxLogger>().AsSingle();
-            Container.Bind<IEnemyAnalyticsService>().To<EnemyAnalyticsLogger>().AsSingle();
         }
     }
 

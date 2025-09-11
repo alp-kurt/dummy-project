@@ -31,7 +31,6 @@ namespace Scripts
                                     DelayType.DeltaTime, PlayerLoopTiming.Update, token);
                 if (!ctx.IsOnScreen)
                 {
-                    ctx.PooledReason = EnemyPooledReason.Offscreen;
                     ctx.Transition(new EnemyState_Pooled());
                 }
             }

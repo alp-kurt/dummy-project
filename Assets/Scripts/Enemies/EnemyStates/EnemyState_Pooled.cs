@@ -7,8 +7,7 @@ namespace Scripts
         public override void OnEnter(EnemyContext ctx)
         {
             ctx.SetCanMove(false);
-            ctx.PoolWithReason(ctx.PooledReason);
-            ctx.PooledReason = EnemyPooledReason.Unknown; // reset
+            ctx.Pool(); 
         }
     }
 }
