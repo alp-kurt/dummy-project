@@ -32,20 +32,19 @@ namespace Scripts
             m_model.Initialize(m_stats);
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
 
-            // Health -> UI (normalized)
+            m_view.SetContactDamage(m_stats.damage);
+
             m_model.Health
                 .CombineLatest(m_model.MaxHealth, (h, max) => max > 0 ? (float)h / max : 0f)
                 .DistinctUntilChanged()
                 .Subscribe(m_view.UpdateHealth)
                 .AddTo(m_disposables);
 
-            // Visibility-driven activation
             m_view.VisibilityChanged
                 .DistinctUntilChanged()
                 .Subscribe(m_model.SetOnScreen)
                 .AddTo(m_disposables);
 
-            // Typed events (UI/SFX/Analytics hooks)
             m_model.DamagedTyped
                 .Subscribe(ev =>
                 {
@@ -77,13 +76,11 @@ namespace Scripts
                 })
                 .AddTo(m_disposables);
 
-            // Per-frame tick + movement
             Observable.EveryUpdate()
                 .Subscribe(_ => Tick())
                 .AddTo(m_disposables);
         }
 
-        // Pool reclaim signal (unchanged)
         public IObservable<Unit> ReturnedToPool => m_model.ReturnedToPool;
 
         public void Dispose() => m_disposables.Dispose();
@@ -91,9 +88,12 @@ namespace Scripts
         public void SpawnFromPool()
         {
             m_model.ResetForSpawn();
+            // Re-assert contact damage in case the same view is reused with different stats someday
+            m_view.SetContactDamage(m_stats.damage);
+
             m_view.SetActive(true);
-            m_view.UpdateHealth(1f);         // show full on spawn
-            m_view.SetHealthVisible(true);   // ensure visible when taking damage soon
+            m_view.UpdateHealth(1f);
+            m_view.SetHealthVisible(true);
         }
 
         public void DespawnToPool()
