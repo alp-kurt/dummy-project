@@ -152,8 +152,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_enemyPrefab: {fileID: 546784411}
-  m_poolParent: {fileID: 1211915387}
   m_activeParent: {fileID: 1183987737}
+  m_pooledParent: {fileID: 0}
+  m_playerTransform: {fileID: 0}
 --- !u!4 &92577810
 Transform:
   m_ObjectHideFlags: 0
@@ -182,6 +183,7 @@ GameObject:
   - component: {fileID: 343482765}
   - component: {fileID: 343482766}
   - component: {fileID: 343482764}
+  - component: {fileID: 343482767}
   m_Layer: 0
   m_Name: SceneContext
   m_TagString: Untagged
@@ -233,6 +235,7 @@ MonoBehaviour:
   _scriptableObjectInstallers: []
   _monoInstallers:
   - {fileID: 343482764}
+  - {fileID: 343482767}
   _installerPrefabs: []
   _autoRun: 1
   OnPreInstall:
@@ -250,6 +253,20 @@ MonoBehaviour:
   _parentNewObjectsUnderSceneContext: 0
   _contractNames: []
   _parentContractNames: []
+--- !u!114 &343482767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343482763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de981ce2cfac446978ba164a99a8d0f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_waveConfig: {fileID: 11400000, guid: a4300475d0a2a465c863812947e497ca, type: 2}
+  m_enemyPoolInScene: {fileID: 92577809}
 --- !u!1001 &524100451
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -362,9 +379,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca232784bda554657aacf050856815d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_wave: {fileID: 11400000, guid: a4300475d0a2a465c863812947e497ca, type: 2}
-  m_pool: {fileID: 92577809}
-  m_playerTransform: {fileID: 6598591594767267530}
   m_camera: {fileID: 6598591594767267529}
   m_randomSeed: 12345
 --- !u!4 &1012206151
@@ -745,11 +759,6 @@ MonoBehaviour:
 --- !u!20 &6598591594767267529 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 1057418709907250524, guid: 88589e8513862483c82c6fe8ca24de4c, type: 3}
-  m_PrefabInstance: {fileID: 6598591594767267527}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &6598591594767267530 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6231471161465838750, guid: 88589e8513862483c82c6fe8ca24de4c, type: 3}
   m_PrefabInstance: {fileID: 6598591594767267527}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

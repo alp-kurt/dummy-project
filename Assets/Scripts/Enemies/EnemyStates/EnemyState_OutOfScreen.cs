@@ -4,15 +4,9 @@ using Cysharp.Threading.Tasks;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Starts a 2s timer to pool while off-screen.
-    /// Cancels the timer when exiting (e.g., becomes visible).
-    /// Movement remains enabled so enemy can walk into view.
-    /// </summary>
     public sealed class EnemyState_OutOfScreen : EnemyStateBase
     {
         public override string Name => "OutOfScreen";
-
         private CancellationTokenSource m_cts;
 
         public override void OnEnter(EnemyContext ctx)
@@ -29,23 +23,19 @@ namespace Scripts
             m_cts = null;
         }
 
-        public override void OnUpdate(EnemyContext ctx, float dt)
-        {
-            // No per-frame logic needed here; transitions are driven by visibility events in the model.
-        }
-
         private async UniTaskVoid DespawnCountdownAsync(EnemyContext ctx, CancellationToken token)
         {
             try
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(ctx.OffscreenDespawnSeconds), DelayType.DeltaTime, PlayerLoopTiming.Update, token);
-                // Still off-screen? Pool.
+                await UniTask.Delay(TimeSpan.FromSeconds(ctx.OffscreenDespawnSeconds),
+                                    DelayType.DeltaTime, PlayerLoopTiming.Update, token);
                 if (!ctx.IsOnScreen)
                 {
+                    ctx.PooledReason = EnemyPooledReason.Offscreen;
                     ctx.Transition(new EnemyState_Pooled());
                 }
             }
-            catch (OperationCanceledException) { /* exit gracefully */ }
+            catch (OperationCanceledException) { }
         }
     }
 }

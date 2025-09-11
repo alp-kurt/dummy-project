@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
@@ -9,34 +10,44 @@ namespace Scripts
     {
         [Header("Prefab & Parents")]
         [SerializeField] private EnemyView m_enemyPrefab;
-        [SerializeField] private Transform m_poolParent;   // assign in scene (Pooled)
-        [SerializeField] private Transform m_activeParent; // optional
+
+        // Children under this object named exactly "Active" and "Pooled"
+        [SerializeField] private Transform m_activeParent;
+        [SerializeField] private Transform m_pooledParent;
 
         private readonly Stack<EnemyView> m_inactive = new Stack<EnemyView>();
 
-        private Transform GetParent(bool active)
+        [Inject] private EnemyPresenterFactory m_presenterFactory;
+
+        private void Awake()
         {
-            if (active && m_activeParent != null) return m_activeParent;
-            if (!active && m_poolParent != null) return m_poolParent;
-            return this.transform;
+            // Auto-find children named "Active" and "Pooled" if not assigned
+            if (m_activeParent == null) m_activeParent = transform.Find("Active");
+            if (m_pooledParent == null) m_pooledParent = transform.Find("Pooled");
+
+            if (m_activeParent == null) m_activeParent = this.transform;
+            if (m_pooledParent == null) m_pooledParent = this.transform;
         }
 
-        public EnemyHandle Get(Transform playerTransform, EnemyStats stats)
+        private Transform GetParent(bool active) => active ? m_activeParent : m_pooledParent;
+
+        public EnemyHandle Get(EnemyStats stats)
         {
-            EnemyView view = m_inactive.Count > 0 ? m_inactive.Pop() : Instantiate(m_enemyPrefab, GetParent(true));
+            var view = m_inactive.Count > 0
+                ? m_inactive.Pop()
+                : Instantiate(m_enemyPrefab, GetParent(true));
+
             view.transform.SetParent(GetParent(true), false);
             view.gameObject.SetActive(true);
 
-            var model = new EnemyModel();
-            var presenter = new EnemyPresenter(model, view, playerTransform, stats);
+            // Presenter via Zenject factory (player is injected inside presenter)
+            var presenter = m_presenterFactory.Create(view, stats);
 
-            // Single-source pooling: only on ReturnedToPool
             var sub = presenter.ReturnedToPool
                 .Take(1)
                 .Subscribe(_ => Return(view, presenter, sub: null));
 
             presenter.SpawnFromPool();
-
             return new EnemyHandle(view, presenter, sub);
         }
 
@@ -50,7 +61,6 @@ namespace Scripts
             view.transform.SetParent(GetParent(false), true);
 
             m_inactive.Push(view);
-            Debug.Log($"[Pool] Returned: {view.name} -> {GetParent(false).name}");
         }
 
         public readonly struct EnemyHandle

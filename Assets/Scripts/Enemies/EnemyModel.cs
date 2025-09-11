@@ -1,49 +1,51 @@
 using System;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
     public sealed class EnemyModel : IEnemyModel
     {
-        // Stats
         private int m_maxHealth;
         private float m_moveSpeed;
         private int m_damage;
 
-        // Reactive state
         private readonly ReactiveProperty<int> m_health = new ReactiveProperty<int>(0);
         private readonly ReactiveProperty<int> m_maxHealthRP = new ReactiveProperty<int>(0);
         private readonly ReactiveProperty<int> m_damageRP = new ReactiveProperty<int>(1);
         private readonly ReactiveProperty<bool> m_canMove = new ReactiveProperty<bool>(false);
 
-        // FSM
+        private readonly EnemyEvents m_events;
+
         private EnemyContext m_ctx;
         private EnemyStateMachine m_fsm;
 
-        // Timings
         private const float k_OffscreenDespawnSeconds = 2.0f;
-        private const float k_DeathDespawnSeconds = 1.0f; // per your spec
+        private const float k_DeathDespawnSeconds = 1.0f;
 
-        // Events
-        private readonly Subject<int> m_damaged = new Subject<int>();
-        private readonly Subject<Unit> m_died = new Subject<Unit>();
-        private readonly Subject<Unit> m_returnedToPool = new Subject<Unit>();
+        private int m_spawnId = 0;
 
-        // Public props
         public IReadOnlyReactiveProperty<int> Health => m_health;
         public IReadOnlyReactiveProperty<int> MaxHealth => m_maxHealthRP;
         public IReadOnlyReactiveProperty<int> Damage => m_damageRP;
         public float MoveSpeed => m_moveSpeed;
         public IReadOnlyReactiveProperty<bool> CanMove => m_canMove;
 
-        public IObservable<int> Damaged => m_damaged;
-        public IObservable<Unit> Died => m_died;
-        public IObservable<Unit> ReturnedToPool => m_returnedToPool;
+        // Simple events (back-compat)
+        public IObservable<int> Damaged => m_events.DamagedAmount;
+        public IObservable<Unit> Died => m_events.Died;
+        public IObservable<Unit> ReturnedToPool => m_events.ReturnedToPool;
 
-        // Internal for states/presenter
+        // Typed events
+        public IObservable<EnemyDamagedEvent> DamagedTyped => m_events.Damaged;
+        public IObservable<EnemyDiedEvent> DiedTyped => m_events.DiedTyped;
+        public IObservable<EnemyReturnedToPoolEvent> ReturnedToPoolTyped => m_events.ReturnedToPoolTyped;
+
         internal bool IsOnScreenInternal { get; private set; }
         internal EnemyStateMachine StateMachineInternal => m_fsm;
+
+        [Inject] public EnemyModel(EnemyEvents eventsHub) { m_events = eventsHub; }
 
         public void Initialize(EnemyStats stats)
         {
@@ -57,7 +59,6 @@ namespace Scripts
             m_ctx = new EnemyContext(this, k_OffscreenDespawnSeconds, k_DeathDespawnSeconds);
             m_fsm = new EnemyStateMachine(m_ctx);
 
-            // Default to Pooled; spawner will call ResetForSpawn → OutOfScreen
             m_health.Value = 0;
             IsOnScreenInternal = false;
             m_canMove.Value = false;
@@ -69,14 +70,15 @@ namespace Scripts
         {
             m_health.Value = m_maxHealth;
             IsOnScreenInternal = false;
-            m_canMove.Value = true; // Off-screen still moves toward player
+            m_canMove.Value = true;
+
+            m_events.BeginLifetime(++m_spawnId);
+            m_ctx.PooledReason = EnemyPooledReason.Unknown;
+
             m_fsm.Transition(new EnemyState_OutOfScreen());
         }
 
-        public void Tick(float deltaTime)
-        {
-            m_fsm.Update(Mathf.Max(0f, deltaTime));
-        }
+        public void Tick(float deltaTime) => m_fsm.Update(Mathf.Max(0f, deltaTime));
 
         public void ApplyDamage(int amount)
         {
@@ -85,7 +87,7 @@ namespace Scripts
             if (m_health.Value <= 0) return;
 
             m_health.Value = Mathf.Max(0, m_health.Value - dmg);
-            m_damaged.OnNext(dmg);
+            m_events.RaiseDamaged(dmg, m_health.Value);
 
             if (m_health.Value <= 0)
             {
@@ -97,7 +99,6 @@ namespace Scripts
         {
             IsOnScreenInternal = isOnScreen;
 
-            // Visibility-driven transitions:
             var cur = m_fsm.Current;
             if (isOnScreen && cur is EnemyState_OutOfScreen)
             {
@@ -109,9 +110,9 @@ namespace Scripts
             }
         }
 
-        // ---- called by states ----
         internal void SetCanMoveInternal(bool value) => m_canMove.Value = value;
-        internal void EmitDiedInternal() => m_died.OnNext(Unit.Default);
-        internal void SwitchToPooledInternal() => m_returnedToPool.OnNext(Unit.Default);
+        internal void EmitDiedInternal() => m_events.RaiseDied();
+        internal void SwitchToPooledInternal(EnemyPooledReason reason = EnemyPooledReason.Unknown)
+            => m_events.RaiseReturnedToPool(reason);
     }
 }

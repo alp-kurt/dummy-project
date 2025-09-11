@@ -1,13 +1,12 @@
 namespace Scripts
 {
-    /// <summary>
-    /// Shared data for the FSM (owned by EnemyModel, passed to states).
-    /// </summary>
     public sealed class EnemyContext
     {
         public EnemyModel Model { get; }
         public float OffscreenDespawnSeconds { get; }
         public float DeathDespawnSeconds { get; }
+
+        public EnemyPooledReason PooledReason { get; set; } = EnemyPooledReason.Unknown;
 
         public EnemyContext(EnemyModel model, float offscreenSec, float deathSec)
         {
@@ -20,10 +19,9 @@ namespace Scripts
         public int Health => Model.Health.Value;
         public float MoveSpeed => Model.MoveSpeed;
 
-        // Convenience pass-throughs for states
         public void SetCanMove(bool canMove) => Model.SetCanMoveInternal(canMove);
         public void EmitDied() => Model.EmitDiedInternal();
-        public void Pool() => Model.SwitchToPooledInternal();
+        public void PoolWithReason(EnemyPooledReason reason) => Model.SwitchToPooledInternal(reason);
         public void Transition(IEnemyState next) => Model.StateMachineInternal.Transition(next);
     }
 }

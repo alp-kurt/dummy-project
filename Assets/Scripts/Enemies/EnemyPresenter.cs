@@ -1,47 +1,82 @@
 using System;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Presenter: binds Model ↔ View. Moves toward player when CanMove is true.
-    /// Visibility transitions are event-based (OnBecameVisible/Invisible from view).
-    /// </summary>
     public sealed class EnemyPresenter : IDisposable
     {
         private readonly IEnemyModel m_model;
         private readonly EnemyView m_view;
-        private readonly Transform m_playerTransform;
+        private readonly Transform m_player;
         private readonly EnemyStats m_stats;
         private readonly CompositeDisposable m_disposables = new CompositeDisposable();
 
-        public IObservable<Unit> ReturnedToPool => m_model.ReturnedToPool;
+        [InjectOptional] private IEnemyUiService m_ui;
+        [InjectOptional] private IEnemySfxService m_sfx;
+        [InjectOptional] private IEnemyAnalyticsService m_analytics;
 
-        public EnemyPresenter(IEnemyModel model, EnemyView view, Transform playerTransform, EnemyStats stats)
+        [Inject]
+        public EnemyPresenter(
+            IEnemyModel model,
+            PlayerView playerView,
+            EnemyView view,
+            EnemyStats stats)
         {
             m_model = model;
             m_view = view;
-            m_playerTransform = playerTransform;
             m_stats = stats;
+            m_player = playerView != null ? playerView.transform : null;
 
             m_model.Initialize(m_stats);
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
 
-            // Use event-based visibility to trigger transitions (no per-frame checks)
             m_view.VisibilityChanged
                 .DistinctUntilChanged()
-                .Subscribe(isVisible => m_model.SetOnScreen(isVisible))
+                .Subscribe(m_model.SetOnScreen)
                 .AddTo(m_disposables);
 
-            // Died → stop movement immediately
-            m_model.Died.Subscribe(_ => m_view.Stop()).AddTo(m_disposables);
+            // ---- Typed events with SpawnId / Reason ----
+            m_model.DamagedTyped
+                .Subscribe(ev =>
+                {
+                    var pos = m_view.Position;
+                    m_ui?.OnDamaged(ev, pos);
+                    m_sfx?.OnDamaged(ev, pos);
+                    m_analytics?.OnDamaged(ev);
+                })
+                .AddTo(m_disposables);
 
-            // Per-frame sim + movement
+            m_model.DiedTyped
+                .Subscribe(ev =>
+                {
+                    m_view.Stop();
+                    var pos = m_view.Position;
+                    m_ui?.OnDied(ev, pos);
+                    m_sfx?.OnDied(ev, pos);
+                    m_analytics?.OnDied(ev);
+                })
+                .AddTo(m_disposables);
+
+            m_model.ReturnedToPoolTyped
+                .Subscribe(ev =>
+                {
+                    var pos = m_view.Position;
+                    m_ui?.OnReturned(ev, pos);
+                    m_sfx?.OnReturned(ev, pos);
+                    m_analytics?.OnReturned(ev);
+                })
+                .AddTo(m_disposables);
+
+            // ---- Per-frame tick + movement ----
             Observable.EveryUpdate()
                 .Subscribe(_ => Tick())
                 .AddTo(m_disposables);
         }
+
+        // Keep simple stream for the pool’s reclaim logic
+        public IObservable<Unit> ReturnedToPool => m_model.ReturnedToPool;
 
         public void Dispose() => m_disposables.Dispose();
 
@@ -62,13 +97,13 @@ namespace Scripts
             float dt = Time.deltaTime;
             m_model.Tick(dt);
 
-            if (m_model.CanMove.Value && m_playerTransform != null)
+            if (m_player != null && m_model.CanMove.Value)
             {
-                Vector3 toPlayer = (m_playerTransform.position - m_view.Position);
-                if (toPlayer.sqrMagnitude > 0.0001f)
+                var dir = (m_player.position - m_view.Position);
+                if (dir.sqrMagnitude > 0.0001f)
                 {
-                    Vector2 velocity = (Vector2)toPlayer.normalized * m_model.MoveSpeed;
-                    m_view.ApplyVelocity(velocity);
+                    var vel = (Vector2)dir.normalized * m_model.MoveSpeed;
+                    m_view.ApplyVelocity(vel);
                     return;
                 }
             }

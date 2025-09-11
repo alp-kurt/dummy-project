@@ -5,13 +5,10 @@ namespace Scripts
 {
     public interface IEnemyModel
     {
-        // Core stats
         IReadOnlyReactiveProperty<int> Health { get; }
         IReadOnlyReactiveProperty<int> MaxHealth { get; }
         IReadOnlyReactiveProperty<int> Damage { get; }
         float MoveSpeed { get; }
-
-        // Movement permission (FSM drives this)
         IReadOnlyReactiveProperty<bool> CanMove { get; }
 
         // Lifecycle
@@ -23,9 +20,14 @@ namespace Scripts
         void ApplyDamage(int amount);
         void SetOnScreen(bool isOnScreen);
 
-        // Signals
+        // Legacy simple events
         IObservable<int> Damaged { get; }
-        IObservable<UniRx.Unit> Died { get; }
-        IObservable<UniRx.Unit> ReturnedToPool { get; }
+        IObservable<Unit> Died { get; }
+        IObservable<Unit> ReturnedToPool { get; }
+
+        // Typed events (SpawnId / Reason)
+        IObservable<EnemyDamagedEvent> DamagedTyped { get; }
+        IObservable<EnemyDiedEvent> DiedTyped { get; }
+        IObservable<EnemyReturnedToPoolEvent> ReturnedToPoolTyped { get; }
     }
 }

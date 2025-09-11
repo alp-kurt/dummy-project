@@ -4,13 +4,9 @@ using Cysharp.Threading.Tasks;
 
 namespace Scripts
 {
-    /// <summary>
-    /// On enter, signal death, wait 1s, then pool.
-    /// </summary>
     public sealed class EnemyState_Dead : EnemyStateBase
     {
         public override string Name => "Dead";
-
         private CancellationTokenSource m_cts;
 
         public override void OnEnter(EnemyContext ctx)
@@ -32,10 +28,12 @@ namespace Scripts
         {
             try
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(ctx.DeathDespawnSeconds), DelayType.DeltaTime, PlayerLoopTiming.Update, token);
+                await UniTask.Delay(TimeSpan.FromSeconds(ctx.DeathDespawnSeconds),
+                                    DelayType.DeltaTime, PlayerLoopTiming.Update, token);
+                ctx.PooledReason = EnemyPooledReason.Dead;
                 ctx.Transition(new EnemyState_Pooled());
             }
-            catch (OperationCanceledException) { /* ignored */ }
+            catch (OperationCanceledException) { }
         }
     }
 }
