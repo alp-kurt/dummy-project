@@ -6,7 +6,7 @@ namespace Scripts
     public sealed class PlayerInstaller : MonoInstaller
     {
         [Header("Config (ScriptableObject)")]
-        [SerializeField] private PlayerHealthConfig healthConfig; // assign your asset in Inspector
+        [SerializeField] private PlayerHealthConfig healthConfig;
 
         [Header("Auto-discover Views in Scene")]
         [Tooltip("If disabled, bind concrete instances manually with BindInstance(...) instead of FromComponentInHierarchy().")]
@@ -39,8 +39,8 @@ namespace Scripts
 
             // --- Player health MVP (reads MaxHealth from SO) ---
             float maxHealth = healthConfig != null ? Mathf.Max(1f, healthConfig.MaxHealth) : 20f;
-            Container.Bind<IPlayerHealthModel>()
-                     .To<PlayerHealthModel>()
+
+            Container.BindInterfacesAndSelfTo<PlayerHealthModel>()
                      .AsSingle()
                      .WithArguments(maxHealth);
 

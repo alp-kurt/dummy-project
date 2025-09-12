@@ -14,8 +14,8 @@ namespace Scripts
                 Container.Bind<WaveConfig>().FromInstance(m_waveConfig).AsSingle();
 
             // Per-enemy models 
-            Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
-            Container.Bind<IEnemyModel>().To<EnemyModel>().AsTransient();
+            Container.BindInterfacesTo<EnemyHealthModel>().AsTransient();
+            Container.BindInterfacesTo<EnemyModel>().AsTransient();
 
             // Presenter factory
             Container.BindFactory<EnemyView, EnemyStats, EnemyPresenter, EnemyPresenterFactory>();
