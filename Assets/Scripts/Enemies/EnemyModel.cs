@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Scripts
 {
-    public sealed class EnemyModel : IEnemyModel
+    public sealed class EnemyModel : IEnemyModel, IDamageable
     {
         // Stats
         private int m_maxHealth;
@@ -102,5 +102,7 @@ namespace Scripts
             else if (!isOnScreen && cur is EnemyState_Active)
                 m_fsm.Transition(new EnemyState_OutOfScreen());
         }
+
+        void IDamageable.ReceiveDamage(int amount) => ApplyDamage(amount);
     }
 }

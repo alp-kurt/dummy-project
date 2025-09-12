@@ -3,7 +3,7 @@ using UniRx;
 
 namespace Scripts
 {
-    public interface IPlayerHealthModel
+    public interface IPlayerHealthModel : IDamageable
     {
         // Normalized (0..1) health for UI binding
         IReadOnlyReactiveProperty<float> CurrentHealth01 { get; }
@@ -18,9 +18,10 @@ namespace Scripts
         IObservable<int> Damaged { get; }
         IObservable<int> Healed { get; }
 
+
         // Commands
-        void ApplyDamage(int amountHp);
         void Heal(int amountHp);
         void ResetFull();
+
     }
 }

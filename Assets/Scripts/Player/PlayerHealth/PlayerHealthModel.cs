@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Scripts
 {
-    public sealed class PlayerHealthModel : IPlayerHealthModel
+    public sealed class PlayerHealthModel : IPlayerHealthModel, IDamageable
     {
         private const float k_DefaultMaxHealth = 20f;
 
@@ -28,7 +28,7 @@ namespace Scripts
             _isDead = false;
         }
 
-        public void ApplyDamage(int amountHp)
+        public void ReceiveDamage(int amountHp)
         {
             int dmg = Math.Max(0, amountHp);
             if (dmg <= 0) return;

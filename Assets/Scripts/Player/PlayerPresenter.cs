@@ -35,7 +35,7 @@ namespace Scripts
                 if (Time.time < m_nextHitTime) return;
                 m_nextHitTime = Time.time + (float)m_hitCooldown.TotalSeconds;
                 var dmg = (e != null && e.ContactDamage > 0) ? e.ContactDamage : 1;
-                m_health.ApplyDamage(dmg);
+                m_health.ReceiveDamage(dmg);
             };
         }
 
