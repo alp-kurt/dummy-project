@@ -1,0 +1,25 @@
+namespace Scripts
+{
+    public sealed class EnemyContext
+    {
+        public EnemyModel Model { get; }
+        public float OffscreenDespawnSeconds { get; }
+        public float DeathDespawnSeconds { get; }
+
+        public EnemyContext(EnemyModel model, float offscreenSec, float deathSec)
+        {
+            Model = model;
+            OffscreenDespawnSeconds = offscreenSec;
+            DeathDespawnSeconds = deathSec;
+        }
+
+        public bool IsOnScreen => Model.IsOnScreenInternal;
+        public int Health => Model.Health.Value;
+        public float MoveSpeed => Model.MoveSpeed;
+
+        public void SetCanMove(bool canMove) => Model.SetCanMoveInternal(canMove);
+        public void EmitDied() => Model.EmitDiedInternal();
+        public void Pool() => Model.SwitchToPooledInternal();
+        public void Transition(IEnemyState next) => Model.StateMachineInternal.Transition(next);
+    }
+}
