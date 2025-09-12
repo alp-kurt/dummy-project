@@ -6,9 +6,10 @@ namespace Scripts
 {
     public sealed class EnemyModel : IEnemyModel
     {
-        // Stats (non-health)
+        // Stats
         private float m_moveSpeed;
         private readonly ReactiveProperty<bool> m_canMove = new(false);
+        private int m_damage;
 
         // Events
         private readonly Subject<Unit> m_returned = new();
@@ -26,6 +27,7 @@ namespace Scripts
 
         // Public props
         public float MoveSpeed => m_moveSpeed;
+        public int Damage => m_damage;
         public IReadOnlyReactiveProperty<bool> CanMove => m_canMove;
         public IObservable<Unit> ReturnedToPool => m_returned;
 
@@ -48,6 +50,7 @@ namespace Scripts
         public void Initialize(EnemyStats stats)
         {
             m_moveSpeed = Mathf.Max(0f, stats.movementSpeed);
+            m_damage = Mathf.Max(0, stats.damage);
 
             m_ctx = new EnemyContext(this, k_OffscreenDespawnSeconds, k_DeathDespawnSeconds);
             m_fsm = new EnemyStateMachine(m_ctx);

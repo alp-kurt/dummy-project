@@ -3,7 +3,7 @@ using System;
 
 namespace Scripts
 {
-    public interface IEnemyModel
+    public interface IEnemyModel : IDamager
     {
         // Movement/state data
         float MoveSpeed { get; }
