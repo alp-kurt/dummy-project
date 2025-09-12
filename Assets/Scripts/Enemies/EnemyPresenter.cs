@@ -12,18 +12,21 @@ namespace Scripts
         private readonly Transform m_player;
         private readonly EnemyStats m_stats;
         private readonly CompositeDisposable m_disposables = new CompositeDisposable();
+        private readonly IEnemyDeathStream m_deathBus;
 
         [Inject]
         public EnemyPresenter(
             IEnemyModel model,
             PlayerView playerView,
             EnemyView view,
-            EnemyStats stats)
+            EnemyStats stats,
+            IEnemyDeathStream deathBus)
         {
             m_model = model;
             m_view = view;
             m_stats = stats;
             m_player = playerView != null ? playerView.transform : null;
+            m_deathBus = deathBus;
 
             m_model.Initialize(m_stats);
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
@@ -43,6 +46,7 @@ namespace Scripts
             m_model.Died
                 .Subscribe(_ =>
                 {
+                    m_deathBus.Publish();
                     m_view.Stop();
                 })
                 .AddTo(m_disposables);
