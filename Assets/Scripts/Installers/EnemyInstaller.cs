@@ -22,6 +22,8 @@ namespace Scripts
             if (m_enemyPoolInScene != null && !Container.HasBinding<EnemyPool>())
                 Container.Bind<EnemyPool>().FromInstance(m_enemyPoolInScene).AsSingle();
 
+            Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
+
         }
     }
 
