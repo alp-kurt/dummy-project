@@ -182,6 +182,7 @@ GameObject:
   - component: {fileID: 343482765}
   - component: {fileID: 343482766}
   - component: {fileID: 343482764}
+  - component: {fileID: 343482770}
   - component: {fileID: 343482767}
   - component: {fileID: 343482768}
   - component: {fileID: 343482769}
@@ -237,6 +238,7 @@ MonoBehaviour:
   - {fileID: 343482767}
   - {fileID: 343482768}
   - {fileID: 343482769}
+  - {fileID: 343482770}
   _installerPrefabs: []
   _autoRun: 1
   OnPreInstall:
@@ -266,8 +268,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de981ce2cfac446978ba164a99a8d0f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_waveConfig: {fileID: 11400000, guid: a4300475d0a2a465c863812947e497ca, type: 2}
-  m_enemyPoolInScene: {fileID: 92577809}
+  waveConfig: {fileID: 11400000, guid: a4300475d0a2a465c863812947e497ca, type: 2}
+  enemyPool: {fileID: 92577809}
 --- !u!114 &343482768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,7 +283,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthConfig: {fileID: 11400000, guid: 03c0289e055ed4a339e7a122ae76e53b, type: 2}
-  autoDiscoverViews: 1
   joystickView: {fileID: 932757184}
   playerView: {fileID: 6598591594767267528}
   playerHealthView: {fileID: 1239021187}
@@ -298,6 +299,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   killCounterView: {fileID: 395670463}
+--- !u!114 &343482770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343482763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b34f91bdcbc9b4b56bc5574e626c4506, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &395670461
 GameObject:
   m_ObjectHideFlags: 0

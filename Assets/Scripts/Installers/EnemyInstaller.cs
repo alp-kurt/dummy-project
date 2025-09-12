@@ -5,26 +5,25 @@ namespace Scripts
 {
     public sealed class EnemyInstaller : MonoInstaller
     {
-        [SerializeField] private WaveConfig m_waveConfig;
-        [SerializeField] private EnemyPool m_enemyPoolInScene;
+        [Header("Optional scene-level references")]
+        [SerializeField] private WaveConfig waveConfig;
+        [SerializeField] private EnemyPool enemyPool;
 
         public override void InstallBindings()
         {
-            if (m_waveConfig != null && !Container.HasBinding<WaveConfig>())
-                Container.Bind<WaveConfig>().FromInstance(m_waveConfig).AsSingle();
-
-            // Per-enemy models 
+            // Per-enemy models (created per factory call)
             Container.BindInterfacesTo<EnemyHealthModel>().AsTransient();
             Container.BindInterfacesTo<EnemyModel>().AsTransient();
 
-            // Presenter factory
+            // Presenter factory (view + stats are supplied at Create(...))
             Container.BindFactory<EnemyView, EnemyStats, EnemyPresenter, EnemyPresenterFactory>();
 
-            if (m_enemyPoolInScene != null && !Container.HasBinding<EnemyPool>())
-                Container.Bind<EnemyPool>().FromInstance(m_enemyPoolInScene).AsSingle();
+            // Optional scene-level singletons (bind only if assigned)
+            if (waveConfig != null)
+                Container.Bind<WaveConfig>().FromInstance(waveConfig).AsSingle();
 
-            Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
-
+            if (enemyPool != null)
+                Container.Bind<EnemyPool>().FromInstance(enemyPool).AsSingle();
         }
     }
 
