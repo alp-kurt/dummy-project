@@ -14,7 +14,7 @@ namespace Scripts
         }
 
         public bool IsOnScreen => Model.IsOnScreenInternal;
-        public int Health => Model.Health.Value;
+  
         public float MoveSpeed => Model.MoveSpeed;
 
         public void SetCanMove(bool canMove) => Model.SetCanMoveInternal(canMove);

@@ -13,10 +13,11 @@ namespace Scripts
             if (m_waveConfig != null && !Container.HasBinding<WaveConfig>())
                 Container.Bind<WaveConfig>().FromInstance(m_waveConfig).AsSingle();
 
-            // Per-enemy hub + model
+            // Per-enemy models 
+            Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
             Container.Bind<IEnemyModel>().To<EnemyModel>().AsTransient();
 
-            // Presenter factory (view + stats)
+            // Presenter factory
             Container.BindFactory<EnemyView, EnemyStats, EnemyPresenter, EnemyPresenterFactory>();
 
             if (m_enemyPoolInScene != null && !Container.HasBinding<EnemyPool>())

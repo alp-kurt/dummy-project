@@ -5,25 +5,20 @@ namespace Scripts
 {
     public interface IEnemyModel
     {
-        // Data
-        IReadOnlyReactiveProperty<int> Health { get; }
-        IReadOnlyReactiveProperty<int> MaxHealth { get; }
-        IReadOnlyReactiveProperty<int> Damage { get; }
+        // Movement/state data
         float MoveSpeed { get; }
         IReadOnlyReactiveProperty<bool> CanMove { get; }
 
         // Lifecycle
         void Initialize(EnemyStats stats);
+        void SetHealth(IEnemyHealthModel health); 
         void ResetForSpawn();
         void Tick(float deltaTime);
 
         // Inputs from world
-        void ApplyDamage(int amount);
         void SetOnScreen(bool isOnScreen);
 
-        // Simple events (no payloads)
-        IObservable<Unit> Damaged { get; }
-        IObservable<Unit> Died { get; }
+        // Pooling
         IObservable<Unit> ReturnedToPool { get; }
     }
 }

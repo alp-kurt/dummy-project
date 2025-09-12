@@ -8,56 +8,65 @@ namespace Scripts
     public sealed class EnemyPresenter : IDisposable
     {
         private readonly IEnemyModel m_model;
+        private readonly IEnemyHealthModel m_health;
         private readonly EnemyView m_view;
         private readonly Transform m_player;
         private readonly EnemyStats m_stats;
-        private readonly CompositeDisposable m_disposables = new CompositeDisposable();
+        private readonly CompositeDisposable m_disposables = new();
         private readonly IEnemyDeathStream m_deathBus;
 
         [Inject]
         public EnemyPresenter(
             IEnemyModel model,
+            IEnemyHealthModel health,      
             PlayerView playerView,
             EnemyView view,
             EnemyStats stats,
             IEnemyDeathStream deathBus)
         {
             m_model = model;
+            m_health = health;
             m_view = view;
             m_stats = stats;
             m_player = playerView != null ? playerView.transform : null;
             m_deathBus = deathBus;
 
+            // Init slices
+            m_health.Initialize(m_stats.maxHealth);
             m_model.Initialize(m_stats);
+            m_model.SetHealth(m_health);
+
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
             m_view.SetContactDamage(m_stats.damage);
 
-            m_model.Health
-                .CombineLatest(m_model.MaxHealth, (h, max) => max > 0 ? (float)h / max : 0f)
-                .DistinctUntilChanged()
-                .Subscribe(m_view.UpdateHealth)
-                .AddTo(m_disposables);
+            // Health → UI
+            m_health.CurrentHealth01
+                   .DistinctUntilChanged()
+                   .Subscribe(m_view.UpdateHealth)
+                   .AddTo(m_disposables);
 
+            // Visibility → movement state
             m_view.VisibilityChanged
-                .DistinctUntilChanged()
-                .Subscribe(m_model.SetOnScreen)
-                .AddTo(m_disposables);
+                 .DistinctUntilChanged()
+                 .Subscribe(m_model.SetOnScreen)
+                 .AddTo(m_disposables);
 
-            m_model.Died
-                .Subscribe(_ =>
-                {
-                    m_deathBus.Publish();
-                    m_view.Stop();
-                })
-                .AddTo(m_disposables);
+            // Death → bus + view stop
+            m_health.Died
+                   .Subscribe(_ =>
+                   {
+                       m_deathBus.Publish();
+                       m_view.Stop();
+                   })
+                   .AddTo(m_disposables);
 
+            // Tick movement
             Observable.EveryUpdate()
-                .Subscribe(_ => Tick())
-                .AddTo(m_disposables);
+                      .Subscribe(_ => Tick())
+                      .AddTo(m_disposables);
         }
 
         public IObservable<Unit> ReturnedToPool => m_model.ReturnedToPool;
-
         public void Dispose() => m_disposables.Dispose();
 
         public void SpawnFromPool()
@@ -90,7 +99,6 @@ namespace Scripts
                     return;
                 }
             }
-
             m_view.ApplyVelocity(Vector2.zero);
         }
     }
