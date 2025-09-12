@@ -8,70 +8,72 @@ namespace Scripts
 {
     public sealed class EnemyPool : MonoBehaviour
     {
-        [Header("Prefab & Parents")]
-        [SerializeField] private EnemyView m_enemyPrefab;
+        [Header("Prefab & Parents (required)")]
+        [SerializeField] private EnemyView enemyPrefab;
+        [SerializeField] private Transform activeParent;
+        [SerializeField] private Transform pooledParent;
 
-        // Children under this object named exactly "Active" and "Pooled"
-        [SerializeField] private Transform m_activeParent;
-        [SerializeField] private Transform m_pooledParent;
+        [Header("Performance")]
+        [SerializeField, Min(0)] private int prewarmCount = 18;
 
         private readonly Stack<EnemyView> m_inactive = new Stack<EnemyView>();
 
-        [Inject] private EnemyPresenterFactory m_presenterFactory;
+        [Inject] private GameFactory _factory;
 
         private void Awake()
         {
-            // Auto-find children named "Active" and "Pooled" if not assigned
-            if (m_activeParent == null) m_activeParent = transform.Find("Active");
-            if (m_pooledParent == null) m_pooledParent = transform.Find("Pooled");
+            if (!enemyPrefab) throw new NullReferenceException($"{nameof(EnemyPool)}: Enemy prefab is not assigned.");
+            if (!activeParent) throw new NullReferenceException($"{nameof(EnemyPool)}: Active parent is not assigned.");
+            if (!pooledParent) throw new NullReferenceException($"{nameof(EnemyPool)}: Pooled parent is not assigned.");
 
-            if (m_activeParent == null) m_activeParent = this.transform;
-            if (m_pooledParent == null) m_pooledParent = this.transform;
+            Prewarm(prewarmCount);   
         }
 
-        private Transform GetParent(bool active) => active ? m_activeParent : m_pooledParent;
-
-        public EnemyHandle Get(EnemyStats stats)
+        /// <summary>
+        /// Gets an enemy view, wires its presenter, and returns the view for positioning.
+        /// </summary>
+        public EnemyView Get(EnemyStats stats)
         {
             var view = m_inactive.Count > 0
                 ? m_inactive.Pop()
-                : Instantiate(m_enemyPrefab, GetParent(true));
+                : Instantiate(enemyPrefab, activeParent);
 
-            view.transform.SetParent(GetParent(true), false);
+            if (view.transform.parent != activeParent)
+                view.transform.SetParent(activeParent, false);
+
             view.gameObject.SetActive(true);
 
-            // Presenter via Zenject factory (player is injected inside presenter)
-            var presenter = m_presenterFactory.Create(view, stats);
+            // Build presenter with DI; it will publish ReturnedToPool when done
+            var presenter = _factory.CreateEnemy(view, stats);
 
-            var sub = presenter.ReturnedToPool
+            presenter.ReturnedToPool
                 .Take(1)
-                .Subscribe(_ => Return(view, presenter, sub: null));
+                .Subscribe(_ => Return(view, presenter))
+                .AddTo(view); // tie to view lifetime (safe with pooling)
 
             presenter.SpawnFromPool();
-            return new EnemyHandle(view, presenter, sub);
+            return view;
         }
 
-        private void Return(EnemyView view, EnemyPresenter presenter, IDisposable sub)
+        private void Return(EnemyView view, EnemyPresenter presenter)
         {
             presenter.Dispose();
-            sub?.Dispose();
 
             view.Stop();
             view.gameObject.SetActive(false);
-            view.transform.SetParent(GetParent(false), true);
+            view.transform.SetParent(pooledParent, false);
 
             m_inactive.Push(view);
         }
 
-        public readonly struct EnemyHandle
+        // Populates the pool at setup phase to reduce startup lag spikes
+        private void Prewarm(int i)
         {
-            public readonly EnemyView View;
-            public readonly EnemyPresenter Presenter;
-            public readonly IDisposable Subscription;
-
-            public EnemyHandle(EnemyView v, EnemyPresenter p, IDisposable sub)
+            for (i = 0; i < prewarmCount; i++)
             {
-                View = v; Presenter = p; Subscription = sub;
+                var v = Instantiate(enemyPrefab, pooledParent);
+                v.gameObject.SetActive(false);
+                m_inactive.Push(v);
             }
         }
     }
