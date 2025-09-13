@@ -7,8 +7,8 @@ namespace Scripts
     {
         [Header("Enemy View Setup")]
         [SerializeField] private EnemyView enemyPrefab;
-        [SerializeField] private Transform pooledParent;   
-        [SerializeField] private Transform activeParent;  
+        [SerializeField] private Transform pooledParent;
+        [SerializeField] private Transform activeParent;
 
         [Header("Pool Size")]
         [SerializeField, Min(0)] private int min = 16;
@@ -16,29 +16,35 @@ namespace Scripts
 
         public override void InstallBindings()
         {
-            // How to create EnemyView
+            // Defensive checks
+            if (enemyPrefab == null)
+                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Enemy prefab is not assigned.");
+            if (pooledParent == null)
+                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Pooled parent is not assigned.");
+            if (activeParent == null)
+                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
+
+            // --- View creation for the pool
             Container.Bind<IObjectFactory<EnemyView>>()
                 .To<PrefabFactory<EnemyView>>()
                 .AsSingle()
                 .WithArguments(enemyPrefab, pooledParent);
 
-            // Typed pool that handles parenting on rent/release
+            // --- Typed pool
+            // EnemyViewPool should inherit ObjectPool<EnemyView>
             Container.Bind<IObjectPool<EnemyView>>()
                 .To<EnemyViewPool>()
                 .AsSingle()
                 .WithArguments(min, max, pooledParent, activeParent);
 
-            // Enemy composition
+            // --- Per-enemy model deps
             Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
-            Container.BindInterfacesAndSelfTo<EnemyModel>().AsTransient();
             Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
-            Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
+
+            // --- Composition & orchestration
             Container.Bind<IEnemyViewRenter>().To<EnemyViewRenter>().AsSingle();
             Container.Bind<IEnemyPresenterFactory>().To<EnemyPresenterFactory>().AsSingle();
-
-
-            if (activeParent != null)
-                Container.Bind<Transform>().WithId("EnemyActiveParent").FromInstance(activeParent).AsSingle();
+            Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
         }
     }
 }

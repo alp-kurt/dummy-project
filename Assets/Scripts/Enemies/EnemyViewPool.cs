@@ -5,7 +5,7 @@ namespace Scripts
     /// <summary>
     /// Typed pool that re-parents EnemyView under pooled/active roots automatically.
     /// </summary>
-    public sealed class EnemyViewPool : AbstractObjectPool<EnemyView>
+    public sealed class EnemyViewPool : ObjectPool<EnemyView>
     {
         private readonly Transform m_pooledParent;
         private readonly Transform m_activeParent;
