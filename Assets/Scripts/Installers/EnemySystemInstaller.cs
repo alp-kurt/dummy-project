@@ -33,6 +33,9 @@ namespace Scripts
             Container.BindInterfacesAndSelfTo<EnemyModel>().AsTransient();
             Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
+            Container.Bind<IEnemyViewRenter>().To<EnemyViewRenter>().AsSingle();
+            Container.Bind<IEnemyPresenterFactory>().To<EnemyPresenterFactory>().AsSingle();
+
 
             if (activeParent != null)
                 Container.Bind<Transform>().WithId("EnemyActiveParent").FromInstance(activeParent).AsSingle();

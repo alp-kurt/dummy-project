@@ -7,7 +7,6 @@ namespace Scripts
 {
     /// <summary>
     /// Creates fully-wired Enemy units (Model + View + Presenter) using the pooled EnemyView.
-    /// Call IEnemyHandle.Release() to safely return the View to its pool and dispose bindings.
     /// </summary>
     public interface IEnemyFactory
     {
