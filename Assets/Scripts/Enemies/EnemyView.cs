@@ -7,7 +7,7 @@ using DG.Tweening;
 namespace Scripts
 {
     [DisallowMultipleComponent]
-    public sealed class EnemyView : MonoBehaviour
+    public sealed class EnemyView : PooledView
     {
         [Header("Render / Movement")]
         [SerializeField] private SpriteRenderer m_spriteRenderer;

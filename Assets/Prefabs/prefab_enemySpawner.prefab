@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5017198988816039268}
-  - component: {fileID: 8940828115266490289}
+  - component: {fileID: 7085701421839169300}
   m_Layer: 0
   m_Name: prefab_enemySpawner
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8940828115266490289
+--- !u!114 &7085701421839169300
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,8 +41,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2546523475180929884}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca232784bda554657aacf050856815d5, type: 3}
+  m_Script: {fileID: 11500000, guid: 1466830dfc25541a8a412a7d0183f50e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_camera: {fileID: 0}
-  m_randomSeed: 12345
+  cam: {fileID: 0}
+  stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
+  spawnIntervalSec: 1
+  countPerTick: 6
+  offscreenPadding: 1
+  randomSeed: 12345

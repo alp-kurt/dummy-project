@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: Lv1_Wave_A
   m_EditorClassIdentifier: 
   entries:
-  - stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
-    weight: 3
   - stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
-    weight: 5
-  spawnIntervalSeconds: 2
-  densityPerTick: 6
-  offscreenPadding: 1
+    countPerWave: 3
+  - stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
+    countPerWave: 5
+  waveIntervalSeconds: 2
+  offscreenPadding: 2
