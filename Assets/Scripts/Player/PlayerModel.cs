@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Scripts
@@ -8,29 +7,24 @@ namespace Scripts
         private const float kDeadzone = 0.02f;
 
         public Vector2 MoveInput { get; private set; }
-        public PlayerMovementState MovementState { get; private set; } = PlayerMovementState.Idle;
+        public bool IsWalking { get; private set; }
 
         private readonly float m_speed;
 
-        public event Action<PlayerMovementState> OnMovementStateChanged;
-
-        public PlayerModel(float speed = 2f) { m_speed = Mathf.Max(0f, speed); }
+        public PlayerModel(float speed = 2f)
+        {
+            m_speed = Mathf.Max(0f, speed);
+        }
 
         public void SetMoveInput(Vector2 input)
         {
             MoveInput = input;
-            var moving = input.sqrMagnitude >= kDeadzone * kDeadzone;
-            var next = moving ? PlayerMovementState.Moving : PlayerMovementState.Idle;
-            if (next != MovementState)
-            {
-                MovementState = next;
-                OnMovementStateChanged?.Invoke(MovementState);
-            }
+            IsWalking = input.sqrMagnitude >= kDeadzone * kDeadzone;
         }
 
         public Vector3 Step(float dt)
         {
-            if (MovementState == PlayerMovementState.Idle) return Vector3.zero;
+            if (!IsWalking) return Vector3.zero;
             var v = MoveInput.normalized * m_speed * dt;
             return new Vector3(v.x, v.y, 0f);
         }

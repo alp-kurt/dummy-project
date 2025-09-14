@@ -11,10 +11,10 @@ namespace Scripts
         // Max health in HP units (for gameplay)
         float MaxHealth { get; }
 
-        // Fired once when health reaches zero; stays silent until ResetFull()
+        // Fired once when health reaches zero
         IObservable<Unit> Died { get; }
 
-        // Optional convenience streams for effects
+        // Convenience streams for effects
         IObservable<int> Damaged { get; }
         IObservable<int> Healed { get; }
 

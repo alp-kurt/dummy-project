@@ -22,7 +22,9 @@ namespace Scripts
             }
         }
 
-        /// <summary>Updates the slider with normalized health [0..1].</summary>
+        /// <summary>
+        /// Updates the slider with normalized health [0..1].
+        /// </summary>
         public void SetHealth01(float value01)
         {
             if (healthBar == null) return;

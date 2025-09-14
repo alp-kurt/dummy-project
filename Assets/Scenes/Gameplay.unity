@@ -223,7 +223,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47995c127069b460abfdc900043ac96f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthConfig: {fileID: 11400000, guid: 03c0289e055ed4a339e7a122ae76e53b, type: 2}
+  playerMaxHealth: 20
+  playerMoveSpeed: 2
   joystickView: {fileID: 932757184}
   playerView: {fileID: 6598591594767267528}
   playerHealthView: {fileID: 1239021187}
