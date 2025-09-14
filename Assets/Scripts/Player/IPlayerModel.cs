@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Scripts
@@ -6,11 +5,9 @@ namespace Scripts
     public interface IPlayerModel
     {
         Vector2 MoveInput { get; }
-        PlayerMovementState MovementState { get; }
+        bool IsWalking { get; }
 
         void SetMoveInput(Vector2 input);
-        Vector3 Step(float deltaTime); // ← Model owns speed & motion math
-
-        event Action<PlayerMovementState> OnMovementStateChanged;
+        Vector3 Step(float deltaTime);
     }
 }

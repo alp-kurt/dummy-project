@@ -5,8 +5,9 @@ namespace Scripts
 {
     public sealed class PlayerInstaller : MonoInstaller
     {
-        [Header("Config (ScriptableObject)")]
-        [SerializeField] private PlayerHealthConfig healthConfig;
+        [Header("Config")]
+        [SerializeField, Min(1f)] private float playerMaxHealth = 20f;
+        [SerializeField, Min(0f)] private float playerMoveSpeed = 2f;
 
         [Header("Required scene references")]
         [SerializeField] private JoystickView joystickView;
@@ -15,21 +16,23 @@ namespace Scripts
 
         public override void InstallBindings()
         {
-            // Views — explicit, no auto-find
+            // Views
             Container.BindInstance(joystickView);
             Container.BindInstance(playerView);
             Container.BindInstance(playerHealthView);
 
-            // Player core MVP
-            Container.Bind<IPlayerModel>().To<PlayerModel>().AsSingle();
+            // Player core MVP (inject speed)
+            Container.Bind<IPlayerModel>()
+                     .To<PlayerModel>()
+                     .AsSingle()
+                     .WithArguments(Mathf.Max(0f, playerMoveSpeed));
+
             Container.BindInterfacesTo<PlayerPresenter>().AsSingle().NonLazy();
 
-            // Player health MVP (reads MaxHealth from SO)
-            float maxHealth = healthConfig != null ? Mathf.Max(1f, healthConfig.MaxHealth) : 20f;
-
+            // Player health MVP
             Container.BindInterfacesAndSelfTo<PlayerHealthModel>()
                      .AsSingle()
-                     .WithArguments(maxHealth);
+                     .WithArguments(Mathf.Max(1f, playerMaxHealth));
 
             Container.BindInterfacesTo<PlayerHealthPresenter>().AsSingle().NonLazy();
         }

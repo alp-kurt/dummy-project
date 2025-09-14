@@ -56,7 +56,6 @@ namespace Scripts
             _current01.Value = new01;
             _healed.OnNext(heal);
 
-            // Note: there is no auto-“resurrect” here. Use ResetFull() to revive+refill.
         }
 
         // Note: a usefull function to enable reviving functionality upon a rewarded ad signal
