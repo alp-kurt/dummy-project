@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3282212328949960908}
   - component: {fileID: 504836067191513797}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: slider_health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 7524863524439192011}
   - component: {fileID: 8767564027581425741}
   - component: {fileID: 6084156684588942507}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 6647376768555204596}
   - component: {fileID: 262979992524737626}
   - component: {fileID: 3470867558868710217}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -251,7 +251,7 @@ GameObject:
   - component: {fileID: 1194162462942064608}
   - component: {fileID: 1829460277686626209}
   - component: {fileID: 8793205694040925746}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -354,7 +354,8 @@ GameObject:
   - component: {fileID: 4223929050542268630}
   - component: {fileID: 1708330073458789133}
   - component: {fileID: 5522619622333855411}
-  m_Layer: 0
+  - component: {fileID: -7559861952899988356}
+  m_Layer: 7
   m_Name: prefab_enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -392,6 +393,7 @@ MonoBehaviour:
   m_spriteRenderer: {fileID: 1708330073458789133}
   m_rigidbody2D: {fileID: 4223929050542268630}
   m_root: {fileID: 2803483230503004728}
+  m_contactDamage: 5
   m_healthBar: {fileID: 504836067191513797}
   m_healthTweenSeconds: 0.2
   m_hideHealthBarWhenFull: 0
@@ -510,6 +512,18 @@ CircleCollider2D:
   m_Offset: {x: 0, y: -0.092899054}
   serializedVersion: 2
   m_Radius: 0.1263395
+--- !u!114 &-7559861952899988356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4891132205617119947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51d6afabb573c4e2b864195b6b8c1450, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8469881332724013253
 GameObject:
   m_ObjectHideFlags: 0
@@ -519,7 +533,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4110101400820706977}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}

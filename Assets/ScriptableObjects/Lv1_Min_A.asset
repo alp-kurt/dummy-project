@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8eaad1069c874352881ba0a2af45474, type: 3}
   m_Name: Lv1_Min_A
   m_EditorClassIdentifier: 
-  maxHealth: 1
+  maxHealth: 9
   movementSpeed: 1.6
   damage: 1
   sprite: {fileID: 21300000, guid: 70901831e0c73497dac8d24d3763bab4, type: 3}

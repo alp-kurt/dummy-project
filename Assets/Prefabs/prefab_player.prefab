@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3065050269147045512}
   - component: {fileID: 1222148391271403938}
   - component: {fileID: 8579800561987063443}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 8979740177751607571}
   - component: {fileID: 1057418709907250524}
   - component: {fileID: 6475634205853802937}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -179,7 +179,7 @@ GameObject:
   - component: {fileID: 7303482460933082913}
   - component: {fileID: 6423869145328326845}
   - component: {fileID: 5825845153084015628}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: prefab_player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -314,7 +314,7 @@ GameObject:
   - component: {fileID: 7271904757935277928}
   - component: {fileID: 7780582472276392236}
   - component: {fileID: 3892538852401728793}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -415,7 +415,7 @@ GameObject:
   - component: {fileID: 2513196313093561586}
   - component: {fileID: 7396507601218551769}
   - component: {fileID: 3641559093363315932}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -490,7 +490,7 @@ GameObject:
   - component: {fileID: 237607390032598236}
   - component: {fileID: 2184793223118375027}
   - component: {fileID: 2229480284559372504}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: slider_health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -592,7 +592,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8370173907160487890}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
