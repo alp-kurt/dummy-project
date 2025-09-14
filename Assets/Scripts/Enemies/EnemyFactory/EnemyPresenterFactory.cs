@@ -1,11 +1,8 @@
 using Zenject;
+using UnityEngine; // for Debug.LogWarning
 
 namespace Scripts
 {
-    /// <summary>
-    /// Centralizes construction of EnemyPresenter (and the EnemyModel it depends on).
-    /// Keeps EnemyFactory tiny and testable.
-    /// </summary>
     public sealed class EnemyPresenterFactory : IEnemyPresenterFactory
     {
         private readonly DiContainer m_container;
@@ -17,15 +14,22 @@ namespace Scripts
 
         public EnemyPresenter Create(EnemyView view, EnemyStats stats)
         {
-            // Model via DI (so EnemyModel gets its own ctor dependencies, if any)
+            // Create per-enemy instances explicitly
             var model = m_container.Instantiate<EnemyModel>();
+            var health = m_container.Instantiate<EnemyHealthModel>(); // single source of truth
 
-            // Per-enemy dependencies (already bound in your installers)
-            var health = m_container.Resolve<IEnemyHealthModel>();
+            // Wire the same health instance to the damageable adapter (once per spawn)
+            var adapter = view.GetComponent<EnemyDamageableAdapter>();
+            if (adapter != null)
+            {
+                adapter.Initialize(health);
+            }
+
+            // Cross-cutting deps
             var player = m_container.Resolve<PlayerView>();
             var deathBus = m_container.Resolve<IEnemyDeathStream>();
 
-            // Your existing EnemyPresenter signature:
+            // Pass the same health instance to the presenter
             return m_container.Instantiate<EnemyPresenter>(
                 new object[] { model, health, player, view, stats, deathBus });
         }

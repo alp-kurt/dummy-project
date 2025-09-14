@@ -16,7 +16,6 @@ namespace Scripts
 
         public override void InstallBindings()
         {
-            // Defensive checks
             if (enemyPrefab == null)
                 throw new System.Exception($"{nameof(EnemySystemInstaller)}: Enemy prefab is not assigned.");
             if (pooledParent == null)
@@ -24,27 +23,32 @@ namespace Scripts
             if (activeParent == null)
                 throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
 
-            // --- View creation for the pool
+            // Factory for EnemyView instances (parent under pooledParent on creation)
             Container.Bind<IObjectFactory<EnemyView>>()
                 .To<PrefabFactory<EnemyView>>()
                 .AsSingle()
                 .WithArguments(enemyPrefab, pooledParent);
 
-            // --- Typed pool
-            // EnemyViewPool should inherit ObjectPool<EnemyView>
+            // Typed pool for EnemyView
             Container.Bind<IObjectPool<EnemyView>>()
                 .To<EnemyViewPool>()
                 .AsSingle()
                 .WithArguments(min, max, pooledParent, activeParent);
 
-            // --- Per-enemy model deps
-            Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
+            // Cross-cutting streams / services
             Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
 
-            // --- Composition & orchestration
+            // Composition
             Container.Bind<IEnemyViewRenter>().To<EnemyViewRenter>().AsSingle();
             Container.Bind<IEnemyPresenterFactory>().To<EnemyPresenterFactory>().AsSingle();
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
+
+            // Note:
+            // This system does NOT rely on container injection for IEnemyHealthModel in adapters.
+            // EnemyPresenterFactory Instantiates one EnemyHealthModel per enemy and shares it explicitly.
+            // If other systems need to Resolve<IEnemyHealthModel>, you can keep a transient binding:
+            // Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
+            // (Not used by this adapter/presenter path, so it's optional.)
         }
     }
 }

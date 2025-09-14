@@ -39,6 +39,7 @@ namespace Scripts
             m_view.SetVisual(m_stats.sprite, m_stats.spriteScale);
             m_view.SetContactDamage(m_stats.damage);
 
+
             // Health → UI
             m_health.CurrentHealth01
                    .DistinctUntilChanged()

@@ -41,6 +41,8 @@ namespace Scripts
             _current01.Value = new01;
             _damaged.OnNext(dmg);
 
+            Debug.Log("Received Damage");
+
             if (!_isDead && new01 <= 0f)
             {
                 _isDead = true;
