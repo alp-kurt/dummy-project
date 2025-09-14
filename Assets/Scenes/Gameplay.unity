@@ -157,6 +157,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5d548ff27aa4a47a086f28461042bbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  activeEnemiesRoot: {fileID: 1183987737}
+  camera: {fileID: 6598591594767267529}
 --- !u!4 &343482765
 Transform:
   m_ObjectHideFlags: 0

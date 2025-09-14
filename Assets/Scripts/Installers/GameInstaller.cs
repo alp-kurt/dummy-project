@@ -1,13 +1,23 @@
 using Zenject;
+using UnityEngine;
 
 namespace Scripts
 {
     public sealed class GameInstaller : MonoInstaller
     {
+        [SerializeField] private Transform activeEnemiesRoot;
+        [SerializeField] private Camera camera;
+
         public override void InstallBindings()
         {
-            // Bind global systems here (audio bus, save system, signal bus, etc.)
-            // Player-specific bindings now live in PlayerInstaller.
+            Container.Bind<Camera>()
+                  .FromComponentInHierarchy()   
+                  .AsSingle();
+
+            Container.Bind<Transform>()
+       .WithId("ActiveEnemiesRoot")
+       .FromInstance(activeEnemiesRoot)
+       .AsSingle();
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Scripts
         protected readonly IProjectileModel _model;
         protected readonly ProjectileView _view;
         protected readonly CompositeDisposable _disposer = new();
+        protected Vector3 GetDirection() => _direction;
 
         private Vector3 _direction = Vector3.right;
         private bool _isMotionInitialized;
@@ -30,7 +31,6 @@ namespace Scripts
 
             _view.SetSprite(_model.Sprite);
 
-            // Apply damage on hit; bolts pierce (no despawn here)
             _view.HitTargets
                 .Subscribe(dmg =>
                 {
@@ -72,5 +72,17 @@ namespace Scripts
         {
             _disposer.Dispose();
         }
+
+        protected void SetDirection(Vector3 dir)
+        {
+            if (dir.sqrMagnitude > 0f)
+                _direction = dir.normalized;
+        }
+
+        protected Vector3 GetPosition()
+        {
+            return _view.CachedTransform.position;
+        }
+
     }
 }
