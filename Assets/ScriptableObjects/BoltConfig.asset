@@ -15,4 +15,5 @@ MonoBehaviour:
   _displayName: Bolt
   _sprite: {fileID: 21300000, guid: 01ccaea9b49214edda39f03f648b5b8b, type: 3}
   _baseDamage: 5
-  _baseSpeed: 6
+  _baseSpeed: 12
+  _lifetimeSeconds: 2

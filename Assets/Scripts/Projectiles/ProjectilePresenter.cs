@@ -56,6 +56,8 @@ namespace Scripts
                 ? directionNormalized.normalized
                 : Vector3.right;
 
+            if (_model is IHasLifetime life) life.ResetLifetime();
+
             _isMotionInitialized = true;
             _model.Activate();
         }

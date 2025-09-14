@@ -9,10 +9,14 @@ namespace Scripts
     {
         private readonly Camera m_camera;
         private readonly Transform m_activeEnemiesRoot;
+        private readonly IHasLifetime m_lifetime; 
 
-        // Tunables (consider exposing via a ScriptableObject later)
-        private const float k_EdgePaddingWorld = 0.25f; // world-units “inside” the view rect
-        private const float k_RicochetCooldown = 0.08f; // seconds between ricochets
+        // (consider SO later)
+        private const float k_EdgePaddingWorld = 0.25f;
+        private const float k_RicochetCooldown = 0.08f;
+
+        private readonly Subject<Unit> m_despawnRequested = new Subject<Unit>();
+        public IObservable<Unit> DespawnRequested => m_despawnRequested;
 
         private float m_lastRicochetAt = -999f;
 
@@ -25,19 +29,32 @@ namespace Scripts
         {
             m_camera = camera != null ? camera : Camera.main;
             m_activeEnemiesRoot = activeEnemiesRoot;
+            m_lifetime = model as IHasLifetime;   
         }
 
         public override void Initialize()
         {
             base.Initialize();
 
-            // Edge checks follow the moving camera every frame.
             Observable.EveryUpdate()
-                .Subscribe(_ => TickRicochet())
+                .Subscribe(_ =>
+                {
+                    TickRicochet();
+
+                // Lifetime ticking & request despawn
+                if (m_lifetime != null)
+                    {
+                        m_lifetime.TickLifetime(Time.deltaTime);
+                        if (m_lifetime.IsExpired)
+                        {
+                            RequestDespawn();
+                        }
+                    }
+                })
                 .AddTo(_disposer);
         }
 
-        /// <summary>Call this from the spawner for a random initial direction.</summary>
+
         public void InitializeRandomMotion(Vector3 spawnPosition)
         {
             var rnd = UnityEngine.Random.insideUnitCircle.normalized;
@@ -70,7 +87,6 @@ namespace Scripts
                     pos.y < bottom - k_EdgePaddingWorld ||
                     pos.y > top + k_EdgePaddingWorld;
 
-                // Also trigger if we’re near an edge and moving outward.
                 bool atEdgeMovingOut = false;
                 var dir = GetDirection();
                 if (!outside)
@@ -84,19 +100,15 @@ namespace Scripts
                 if (outside || atEdgeMovingOut)
                 {
                     RedirectTowardClosestEnemyOrRandom();
-
-                    // Nudge back inside so we don’t instantly retrigger while camera keeps moving.
                     var p = pos;
                     p.x = Mathf.Clamp(p.x, left + k_EdgePaddingWorld, right - k_EdgePaddingWorld);
                     p.y = Mathf.Clamp(p.y, bottom + k_EdgePaddingWorld, top - k_EdgePaddingWorld);
                     _view.SetPosition(p);
-
                     m_lastRicochetAt = now;
                 }
             }
             else
             {
-                // Perspective fallback (keeps working with a moving camera)
                 var vp = m_camera.WorldToViewportPoint(pos);
                 bool outside = vp.z < 0f || vp.x < -0.02f || vp.x > 1.02f || vp.y < -0.02f || vp.y > 1.02f;
                 if (outside)
@@ -120,8 +132,6 @@ namespace Scripts
                     return;
                 }
             }
-
-            // Fallback if no enemies
             var rnd = UnityEngine.Random.insideUnitCircle.normalized;
             SetDirection(new Vector3(rnd.x, rnd.y, 0f));
         }
@@ -147,6 +157,18 @@ namespace Scripts
                 }
             }
             return closest;
+        }
+
+        private void RequestDespawn()
+        {
+            m_despawnRequested.OnNext(Unit.Default);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            m_despawnRequested.OnCompleted();
+            m_despawnRequested.Dispose();
         }
     }
 }

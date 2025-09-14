@@ -14,7 +14,7 @@ namespace Scripts
 
         public event Action<PlayerMovementState> OnMovementStateChanged;
 
-        public PlayerModel(float speed = 4f) { m_speed = Mathf.Max(0f, speed); }
+        public PlayerModel(float speed = 2f) { m_speed = Mathf.Max(0f, speed); }
 
         public void SetMoveInput(Vector2 input)
         {
