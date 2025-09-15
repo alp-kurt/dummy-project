@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 343482765}
   - component: {fileID: 343482766}
+  - component: {fileID: 343482774}
   - component: {fileID: 343482773}
   - component: {fileID: 343482764}
   - component: {fileID: 343482768}
@@ -190,6 +191,7 @@ MonoBehaviour:
   - {fileID: 343482771}
   - {fileID: 343482768}
   - {fileID: 343482773}
+  - {fileID: 343482774}
   _installerPrefabs: []
   _autoRun: 1
   OnPreInstall:
@@ -241,7 +243,6 @@ MonoBehaviour:
   min: 16
   max: 32
   spawnerView: {fileID: 444696142}
-  killCounterView: {fileID: 395670463}
 --- !u!114 &343482773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,22 +260,24 @@ MonoBehaviour:
   activeParent: {fileID: 1619676330}
   min: 0
   max: 7
+--- !u!114 &343482774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343482763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64fcfef0dbfdf4730a25cb731d16dbb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  killCounterView: {fileID: 0}
 --- !u!224 &395670462 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6026971502688007022, guid: 1f506e9a9086e43198e268c603415687, type: 3}
   m_PrefabInstance: {fileID: 4413711123027063799}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &395670463 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5509768747504657412, guid: 1f506e9a9086e43198e268c603415687, type: 3}
-  m_PrefabInstance: {fileID: 4413711123027063799}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 367a93111c2ce4ae0a4c4b900d9c15e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &444696142 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1935725624618212927, guid: dbc5b098389634235baa3b65c3023e13, type: 3}

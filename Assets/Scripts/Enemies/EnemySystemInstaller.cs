@@ -16,10 +16,6 @@ namespace Scripts
         [Tooltip("If left null, the view will be resolved via FromComponentInHierarchy().")]
         [SerializeField] private EnemyWaveSpawnerView spawnerView;
 
-        [Header("Kill Counter (optional override)")]
-        [Tooltip("If left null, the view will be resolved via FromComponentInHierarchy().")]
-        [SerializeField] private EnemyKillCounterView killCounterView;
-
         public override void InstallBindings()
         {
             // ---- Validation for pooling setup ----
@@ -33,6 +29,7 @@ namespace Scripts
             // ---- Scene singletons / globals ----
             // Cross-cutting streams / services
             Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
+
 
             // ---- Enemy view factory + pool ----
             // Factory for EnemyView instances (parent under pooledParent on creation)
@@ -52,15 +49,6 @@ namespace Scripts
             Container.Bind<IEnemyPresenterFactory>().To<EnemyPresenterFactory>().AsSingle();
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
 
-            // ---- Kill Counter MVP (merged from KillCounterInstaller) ----
-            if (killCounterView)
-                Container.BindInstance(killCounterView);
-            else
-                Container.Bind<EnemyKillCounterView>().FromComponentInHierarchy().AsSingle();
-
-            Container.Bind<IEnemyKillCounterModel>().To<EnemyKillCounterModel>().AsSingle();
-            Container.BindInterfacesTo<EnemyKillCounterPresenter>().AsSingle().NonLazy();
-
             // ---- Wave Spawner MVP (merged from EnemyWaveSpawnerInstaller) ----
             // Bind the view (explicit instance or lazy from hierarchy)
             if (spawnerView)
@@ -72,7 +60,7 @@ namespace Scripts
                 Container.Bind<EnemyWaveSpawnerView>().FromComponentInHierarchy().AsSingle();
             }
 
-            // Build model from bound view (keeps WaveConfig/RandomSeed in View, LiveOps-friendly)
+            // Build model from bound view
             Container.Bind<IEnemyWaveSpawnerModel>()
                 .FromMethod(ctx =>
                 {
