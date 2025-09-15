@@ -20,8 +20,8 @@ namespace Scripts
             Container.BindInstance(playerHealthView);
 
             Container.Bind<PlayerView>()
-         .FromComponentInHierarchy()
-         .AsSingle();
+                    .FromComponentInHierarchy()
+                    .AsSingle();
 
             // Player core MVP (inject speed)
             Container.Bind<IPlayerModel>()
@@ -29,14 +29,18 @@ namespace Scripts
                      .AsSingle()
                      .WithArguments(Mathf.Max(0f, playerMoveSpeed));
 
-            Container.BindInterfacesTo<PlayerPresenter>().AsSingle().NonLazy();
+            Container.BindInterfacesTo<PlayerPresenter>()
+                    .AsSingle()
+                    .NonLazy();
 
             // Player health MVP
             Container.BindInterfacesAndSelfTo<PlayerHealthModel>()
                      .AsSingle()
                      .WithArguments(Mathf.Max(1f, playerMaxHealth));
 
-            Container.BindInterfacesTo<PlayerHealthPresenter>().AsSingle().NonLazy();
+            Container.BindInterfacesTo<PlayerHealthPresenter>()
+                     .AsSingle()
+                     .NonLazy();
         }
     }
 }
