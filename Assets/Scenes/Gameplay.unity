@@ -248,6 +248,8 @@ MonoBehaviour:
   max: 7
   edgePaddingWorld: 0.25
   ricochetCooldown: 0.08
+  spawnerConfig: {fileID: 11400000, guid: f9e4d6335958c44d198cc2e93b92fb99, type: 2}
+  boltConfig: {fileID: 11400000, guid: 9b399fef0f68c4061be3da23d7de78ec, type: 2}
 --- !u!114 &343482774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -778,7 +780,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: prefab_boltSpawner
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 5838357285323608163, guid: 1ae5e494544314c89a5ca2e2f1aeb281, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 5838357285323608163, guid: 1ae5e494544314c89a5ca2e2f1aeb281, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

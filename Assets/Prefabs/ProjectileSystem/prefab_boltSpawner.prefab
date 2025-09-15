@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 316606788324294043}
-  - component: {fileID: 5838357285323608163}
+  - component: {fileID: 2628697713417146638}
   m_Layer: 0
   m_Name: prefab_boltSpawner
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5838357285323608163
+--- !u!114 &2628697713417146638
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,8 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2573724219292241537}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 941c5d8d4498d415cb3dc085f0ec7245, type: 3}
+  m_Script: {fileID: 11500000, guid: 5917f0287dfbf48d0a5fd02c4e42472e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boltConfig: {fileID: 11400000, guid: 9b399fef0f68c4061be3da23d7de78ec, type: 2}
-  spawnDir: {x: 1, y: 0, z: 0}
+  _config: {fileID: 11400000, guid: f9e4d6335958c44d198cc2e93b92fb99, type: 2}

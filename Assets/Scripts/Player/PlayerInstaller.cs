@@ -33,6 +33,10 @@ namespace Scripts
                     .FromComponentInHierarchy()
                     .AsSingle();
 
+            Container.Bind<IPlayerPosition>()
+                    .To<PlayerPositionAdapter>()
+                    .AsSingle();
+
             // Player core MVP (inject speed)
             Container.Bind<IPlayerModel>()
                      .To<PlayerModel>()

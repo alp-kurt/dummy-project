@@ -18,6 +18,14 @@ namespace Scripts
             // Rent view and place at spawn
             var view = _viewRenter.Rent(position);
 
+            //  Apply optional scale override from BoltConfig ===
+            if (config is BoltConfig boltCfg && boltCfg.ScaleOverride > 0f)
+            {
+                var s = boltCfg.ScaleOverride;
+                view.CachedTransform.localScale = new Vector3(s, s, s);
+            }
+            // else: keep the prefab's own scale
+
             // Build model + presenter and wire them
             var presenter = _presenterFactory.Create(view, config);
 
