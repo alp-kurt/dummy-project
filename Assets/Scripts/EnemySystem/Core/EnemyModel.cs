@@ -49,8 +49,8 @@ namespace Scripts
 
         public void Initialize(EnemyStats stats)
         {
-            _moveSpeed = Mathf.Max(0f, stats.movementSpeed);
-            _damage = Mathf.Max(0, stats.damage);
+            _moveSpeed = Mathf.Max(0f, stats.MovementSpeed);
+            _damage = Mathf.Max(0, stats.Damage);
 
             // UseUnscaledTime defaults to false; flip via the EnemyContext ctor overload if desired.
             _ctx = new EnemyContext(this, k_OffscreenDespawnSeconds, k_DeathDespawnSeconds);

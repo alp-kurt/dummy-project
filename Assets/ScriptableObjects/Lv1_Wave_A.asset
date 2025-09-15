@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfcc3c301651440138d19410ed8fb4b1, type: 3}
   m_Name: Lv1_Wave_A
   m_EditorClassIdentifier: 
-  entries:
-  - stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
-    countPerWave: 4
-  - stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
-    countPerWave: 4
-  waveIntervalSeconds: 1
-  offscreenPadding: 1
+  _entries:
+  - _stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
+    _countPerWave: 6
+  - _stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
+    _countPerWave: 6
+  _waveIntervalSeconds: 1
+  _offscreenPadding: 1

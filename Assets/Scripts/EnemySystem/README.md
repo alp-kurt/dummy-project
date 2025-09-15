@@ -117,25 +117,71 @@ A modular, Enemy System built with pooling, and a lightweight FSM. It’s tuned 
 
 * EnemyStats SO
 
-    1. movementSpeed, 
-    2. damage, 
-    3. maxHealth, 
-    4. sprite, 
-    5. spriteScale
-
 * WaveConfig (on Spawner View)
 
-    1. entries[] 
-    2. (stats, countPerWave) 
-    3. waveIntervalSeconds, 
-    4. offscreenPadding
-
 * Spawner view extras: 
-    1. spawnBudgetPerFrame, 
-    2. spawnDelaySeconds, 
-    3. randomSeed
 
 * FSM Timing (per enemy)
 
     1. In EnemyContext: OffscreenDespawnSeconds, DeathDespawnSeconds
     2. UseUnscaledTime
+
+***
+
+## EnemyStats (Per-Enemy Base Stats)
+
+The core stats and visuals for an enemy type (used by wave entries).
+
+* Create: Use your concrete enemy stat assets (e.g., MinionStats, ChampionStats) from your game’s Enemies menu. If you don’t see them, ask a programmer to expose concrete assets that inherit from EnemyStats.
+
+* Used where: In WaveConfig → Entries → Stats. You don’t put stats on the enemy prefab; the wave controls what spawns.
+
+### Fields (Designer Guide)
+
+* Max Health
+    * Total HP. Minimum 1 (auto-clamped).
+
+* Movement Speed
+    * Units per second. 0 = stationary. Can be fractional.
+
+* Damage
+    * Contact damage dealt to the player. Minimum 1 (auto-clamped).
+
+* Sprite
+    * The enemy’s sprite. The asset warns if this is missing.
+
+* Sprite Scale
+    * Visual scale multiplier at spawn (≥ 0.1). Use to make variants look bigger/smaller without changing gameplay.
+
+The asset clamps bad values and warns when Sprite is missing.
+
+---
+## WaveConfig (Enemy Waves)
+
+List of enemies (per type) to spawn per wave, plus timing and spawn-area padding.
+
+* Create: Assets → Create → Game → Waves → Multi-Enemy Wave Config
+
+### Assign in Scene: 
+
+Find your EnemySystemInstaller in the SceneContext and drop your WaveConfig into its Wave Config field. The spawner reads this via DI; you don’t add WaveConfig anywhere else.
+
+### Fields (Designer Guide)
+
+* Entries
+    * A list of items the spawner will produce each wave, top to bottom.
+
+* Stats: 
+    * Pick an EnemyStats asset for that enemy type.
+
+* Count Per Wave: 
+    * How many of that enemy to spawn each wave. 0 = skip this entry (useful for testing).
+
+* Wave Interval Seconds
+    * Time between consecutive waves. Minimum 0.05s (the asset clamps values below this).
+
+* Offscreen Padding
+    * How far outside the camera edge enemies appear. Larger values spawn further offscreen (more travel time before they enter view).
+
+The asset warns if an Entry is missing Stats or if counts are invalid.
+Spawn pacing per frame is not set here—adjust that on the EnemyWaveSpawnerView in the scene (Spawn Budget per Frame / Spawn Delay Seconds).

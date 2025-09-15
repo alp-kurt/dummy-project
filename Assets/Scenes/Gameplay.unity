@@ -205,10 +205,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47995c127069b460abfdc900043ac96f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMaxHealth: 40
-  playerMoveSpeed: 2
-  joystickView: {fileID: 932757184}
-  playerHealthView: {fileID: 1239021187}
+  _playerMaxHealth: 40
+  _playerMoveSpeed: 2
+  _joystickView: {fileID: 932757184}
+  _playerHealthView: {fileID: 1239021187}
   camera: {fileID: 6598591594767267529}
 --- !u!114 &343482771
 MonoBehaviour:
@@ -222,12 +222,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44fc8c1f4092b4b1eabad99300dc94a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 4762150085740561046, guid: 047f0c6f563e448c68134f6fb9e7a605, type: 3}
-  pooledParent: {fileID: 1211915387}
-  activeParent: {fileID: 1183987737}
-  min: 16
-  max: 32
-  spawnerView: {fileID: 444696142}
+  _enemyPrefab: {fileID: 4762150085740561046, guid: 047f0c6f563e448c68134f6fb9e7a605, type: 3}
+  _pooledParent: {fileID: 1211915387}
+  _activeParent: {fileID: 1183987737}
+  _min: 16
+  _max: 128
+  _spawnerView: {fileID: 444696142}
+  _waveConfig: {fileID: 11400000, guid: a4300475d0a2a465c863812947e497ca, type: 2}
 --- !u!114 &343482773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,7 +260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64fcfef0dbfdf4730a25cb731d16dbb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  killCounterView: {fileID: 395670463}
+  _killCounterView: {fileID: 395670463}
 --- !u!224 &395670462 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6026971502688007022, guid: 1f506e9a9086e43198e268c603415687, type: 3}
@@ -1089,6 +1090,10 @@ PrefabInstance:
       propertyPath: healthBar
       value: 
       objectReference: {fileID: 1239021186}
+    - target: {fileID: 7303482460933082913, guid: 88589e8513862483c82c6fe8ca24de4c, type: 3}
+      propertyPath: _enemyMask.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

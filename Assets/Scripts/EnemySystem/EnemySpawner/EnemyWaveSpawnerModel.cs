@@ -6,16 +6,16 @@ namespace Scripts
 {
     public sealed class EnemyWaveSpawnerModel : IEnemyWaveSpawnerModel
     {
-        private readonly ReactiveProperty<int> m_waveIndex = new ReactiveProperty<int>(0);
+        private readonly ReactiveProperty<int> _waveIndex = new ReactiveProperty<int>(0);
 
-        public WaveConfig Wave { get; }
+        public EnemyWaveConfig Wave { get; }
         public int RandomSeed { get; }
-        public IReadOnlyReactiveProperty<int> WaveIndex => m_waveIndex;
+        public IReadOnlyReactiveProperty<int> WaveIndex => _waveIndex;
 
-        public TimeSpan WaveInterval => TimeSpan.FromSeconds(Mathf.Max(0.05f, Wave.waveIntervalSeconds));
-        public float OffscreenPadding => Wave.offscreenPadding;
+        public TimeSpan WaveInterval => TimeSpan.FromSeconds(Mathf.Max(0.05f, Wave.WaveIntervalSeconds));
+        public float OffscreenPadding => Wave.OffscreenPadding;
 
-        public EnemyWaveSpawnerModel(WaveConfig wave, int randomSeed)
+        public EnemyWaveSpawnerModel(EnemyWaveConfig wave, int randomSeed)
         {
             Wave = wave;
             RandomSeed = randomSeed;
@@ -23,7 +23,7 @@ namespace Scripts
 
         public void AdvanceWave()
         {
-            m_waveIndex.Value = m_waveIndex.Value + 1;
+            _waveIndex.Value = _waveIndex.Value + 1;
         }
     }
 }

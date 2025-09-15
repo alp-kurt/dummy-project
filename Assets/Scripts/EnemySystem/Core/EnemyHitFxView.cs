@@ -6,16 +6,26 @@ namespace Scripts
     public sealed class EnemyHitFxView : MonoBehaviour, IPooledViewModule
     {
         [Header("Refs")]
+        [Tooltip("If left empty, will search in children on Awake/OnValidate.")]
         [SerializeField] private SpriteRenderer _spriteRenderer;
 
         [Header("Flash")]
-        [SerializeField] private float _flashIn = 0.05f;
-        [SerializeField] private float _flashOut = 0.12f;
+        [Tooltip("Duration of the flash-in to white.")]
+        [SerializeField, Min(0f)] private float _flashIn = 0.05f;
 
-        [Header("Squash/Woogle")]
+        [Tooltip("Duration of the flash-out back to base color.")]
+        [SerializeField, Min(0f)] private float _flashOut = 0.12f;
+
+        [Header("Squash/Stretch")]
+        [Tooltip("Target minimum scale (0.6–1.0).")]
         [Range(0.6f, 1f)] [SerializeField] private float _scaleMin = 0.9f;
-        [SerializeField] private float _scaleIn = 0.06f;
-        [SerializeField] private float _scaleOut = 0.10f;
+
+        [Tooltip("Duration of the squash-in.")]
+        [SerializeField, Min(0f)] private float _scaleIn = 0.06f;
+
+        [Tooltip("Duration of the stretch-out.")]
+        [SerializeField, Min(0f)] private float _scaleOut = 0.10f;
+
         [SerializeField] private Ease _easeIn = Ease.OutCubic;
         [SerializeField] private Ease _easeOut = Ease.OutBack;
 
@@ -23,6 +33,11 @@ namespace Scripts
         private Vector3 _baseScale = Vector3.one;
 
         private Tween _flashTween, _scaleTween;
+
+        private void Awake()
+        {
+            if (!_spriteRenderer) _spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
+        }
 
         public void OnSpawn()
         {
@@ -43,14 +58,12 @@ namespace Scripts
         {
             if (!_spriteRenderer) return;
 
-            // flash
             _flashTween?.Kill(true);
             var seq = DOTween.Sequence().SetUpdate(true);
             seq.Append(_spriteRenderer.DOColor(Color.white, _flashIn));
             seq.Append(_spriteRenderer.DOColor(_baseColor, _flashOut));
             _flashTween = seq;
 
-            // squash
             _scaleTween?.Kill(true);
             var tr = _spriteRenderer.transform;
             var target = _baseScale * Mathf.Clamp01(_scaleMin);
@@ -72,5 +85,19 @@ namespace Scripts
             _spriteRenderer.color = _baseColor;
             _spriteRenderer.transform.localScale = _baseScale;
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (!_spriteRenderer) _spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
+            _flashIn = Mathf.Max(0f, _flashIn);
+            _flashOut = Mathf.Max(0f, _flashOut);
+            _scaleIn = Mathf.Max(0f, _scaleIn);
+            _scaleOut = Mathf.Max(0f, _scaleOut);
+
+            if (!_spriteRenderer)
+                Debug.LogWarning("[EnemyHitFxView] SpriteRenderer not assigned or found in children.", this);
+        }
+#endif
     }
 }

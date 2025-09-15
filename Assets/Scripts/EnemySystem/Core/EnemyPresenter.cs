@@ -37,12 +37,12 @@ namespace Scripts
             _deathBus = deathBus;
 
             // ----- Initialize model & visuals -----
-            _health.Initialize(_stats.maxHealth);
+            _health.Initialize(_stats.MaxHealth);
             _model.Initialize(_stats);
             _model.SetHealth(_health);
 
-            _view.SetVisual(_stats.sprite, _stats.spriteScale);
-            _view.SetContactDamage(_stats.damage);
+            _view.SetVisual(_stats.Sprite, _stats.SpriteScale);
+            _view.SetContactDamage(_stats.Damage);
 
             // Cache optional modules from the view/prefab
             _view.EnsureModulesCached();
@@ -93,7 +93,7 @@ namespace Scripts
             _model.ResetForSpawn();
 
             // Keep contact damage in sync with stats at spawn
-            _view.SetContactDamage(_stats.damage);
+            _view.SetContactDamage(_stats.Damage);
 
             _view.SetActive(true);
 

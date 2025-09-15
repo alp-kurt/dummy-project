@@ -8,7 +8,7 @@ namespace Scripts
     /// </summary>
     public interface IEnemyWaveSpawnerModel
     {
-        WaveConfig Wave { get; }
+        EnemyWaveConfig Wave { get; }
         int RandomSeed { get; }
 
         IReadOnlyReactiveProperty<int> WaveIndex { get; } // 0-based

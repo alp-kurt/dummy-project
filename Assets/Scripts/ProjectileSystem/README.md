@@ -93,3 +93,27 @@ This module defines the core projectile architecture. It provides a reusable bas
 * Direct Debug.Log removed: avoids spam in hot paths. Add optional logging via a debug flag if needed.
 
 * Stat setters (SetDamage, SetSpeed) allow flexibility but can lead to inconsistent state if misused. A more robust modifier pipeline could be introduced.
+
+## ProjectileConfigBase (Shared Projectile Settings)
+
+Base settings shared by all projectile types (name, sprite, base stats). Specific projectile types (e.g., BoltConfig) inherit this and add their own fields.
+
+* Create: You don’t create this directly; use a concrete projectile asset like BoltConfig below.
+
+* Used where: In the system that fires projectiles (e.g., player weapon / projectile installer). Ask your programmer which scene object exposes a …Config field for your projectile.
+
+### Fields (Designer Guide)
+
+* Display Name
+    * Friendly name for UI/debugging.
+
+* Sprite
+    * Visual for the projectile. The asset warns if this is missing.
+
+* Base Damage
+    * Damage per hit before runtime modifiers (perks, buffs). Minimum 
+
+* Base Speed
+    * Units per second. 0 means it won’t move (the asset warns).
+
+The asset trims empty names, clamps damage/speed, and warns on missing sprite or zero speed.

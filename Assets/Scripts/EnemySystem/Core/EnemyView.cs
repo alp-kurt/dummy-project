@@ -7,13 +7,25 @@ namespace Scripts
     [DisallowMultipleComponent]
     public sealed class EnemyView : PooledView
     {
+        [Header("Core Refs")]
+        [Tooltip("Primary renderer for this enemy (can be on a child).")]
         [SerializeField] private SpriteRenderer _spriteRenderer;
-        [SerializeField] private Rigidbody2D _rigidbody2D;
-        [SerializeField] private Transform _root;
-        [SerializeField] private int _contactDamage;
 
-        // Optional plug-ins (assign in prefab or fetched via GetComponentInChildren)
+        [Tooltip("Optional. If missing, movement falls back to setting Transform position.")]
+        [SerializeField] private Rigidbody2D _rigidbody2D;
+
+        [Tooltip("Optional visual root (scale/pos). Defaults to this Transform.")]
+        [SerializeField] private Transform _root;
+
+        [Header("Gameplay")]
+        [Tooltip("Contact damage against the player.")]
+        [SerializeField, Min(0)] private int _contactDamage = 1;
+
+        [Header("Optional Modules")]
+        [Tooltip("Optional. Found in children if not assigned.")]
         [SerializeField] private EnemyHitFxView _hitFxView;
+
+        [Tooltip("Optional. Found in children if not assigned.")]
         [SerializeField] private EnemyHealthBarView _healthBarView;
 
         private readonly Subject<bool> _visibilityChanged = new();
@@ -29,12 +41,9 @@ namespace Scripts
 
         public void SetVisual(Sprite sprite, float scale = 1f)
         {
-            if (_spriteRenderer != null)
-            {
-                _spriteRenderer.sprite = sprite;
-                _spriteRenderer.transform.localScale = Vector3.one * Mathf.Max(0.01f, scale);
-                // let modules read base color/scale if they need (they’ll cache on OnSpawn)
-            }
+            if (_spriteRenderer == null) return;
+            _spriteRenderer.sprite = sprite;
+            _spriteRenderer.transform.localScale = Vector3.one * Mathf.Max(0.01f, scale);
         }
 
         public void ApplyVelocityFixed(Vector2 velocity, float fixedDt)
@@ -54,11 +63,34 @@ namespace Scripts
 
         public void SetActive(bool value) => gameObject.SetActive(value);
 
-        // Helpers for presenter: expose modules even if not wired in inspector
         public void EnsureModulesCached()
         {
             if (!_hitFxView) _hitFxView = GetComponentInChildren<EnemyHitFxView>(true);
             if (!_healthBarView) _healthBarView = GetComponentInChildren<EnemyHealthBarView>(true);
         }
+
+        private void Awake()
+        {
+            if (!_spriteRenderer) _spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
+            if (!_rigidbody2D) _rigidbody2D = GetComponentInChildren<Rigidbody2D>(true) ?? GetComponent<Rigidbody2D>();
+            if (!_root) _root = transform;
+            EnsureModulesCached();
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (!_spriteRenderer) _spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
+            if (!_rigidbody2D) _rigidbody2D = GetComponentInChildren<Rigidbody2D>(true) ?? GetComponent<Rigidbody2D>();
+            if (!_root) _root = transform;
+            _contactDamage = Mathf.Max(0, _contactDamage);
+
+            if (!_spriteRenderer)
+                Debug.LogWarning("[EnemyView] SpriteRenderer not assigned or found in children.", this);
+
+            if (!GetComponentInChildren<Collider2D>(true))
+                Debug.LogWarning("[EnemyView] No Collider2D found; enemy won’t collide with player/projectiles.", this);
+        }
+#endif
     }
 }

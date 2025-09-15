@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spriteRenderer: {fileID: 3371465546340763451}
-  targetMask:
+  _targetMask:
     serializedVersion: 2
     m_Bits: 128
 --- !u!212 &3371465546340763451
