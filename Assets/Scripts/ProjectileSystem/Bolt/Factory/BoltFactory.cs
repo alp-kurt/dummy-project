@@ -1,5 +1,4 @@
 using UnityEngine;
-using Zenject;
 
 namespace Scripts
 {
@@ -14,7 +13,7 @@ namespace Scripts
             m_presenterFactory = presenterFactory;
         }
 
-        public IBoltHandle Create(Vector3 position, Vector3 directionNormalized, ProjectileConfig config)
+        public IBoltHandle Create(Vector3 position, Vector3 directionNormalized, ProjectileConfigBase config)
         {
             // Rent view and place at spawn
             var view = m_viewRenter.Rent(position);

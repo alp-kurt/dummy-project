@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Scripts
 {
-    public abstract class ProjectileConfig : ScriptableObject
+    public abstract class ProjectileConfigBase : ScriptableObject
     {
         [SerializeField] private string _displayName = "Projectile";
         [SerializeField] private Sprite _sprite;

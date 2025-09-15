@@ -15,7 +15,8 @@ namespace Scripts
         private readonly Subject<IDamageable> hitTargets = new();
         public IObservable<IDamageable> HitTargets => hitTargets;
 
-        public Transform CachedTransform => transform;
+        private Transform _cachedTransform;
+        public Transform CachedTransform => _cachedTransform ? _cachedTransform : (_cachedTransform = transform);
 
         public void SetSprite(Sprite sprite)
         {
@@ -24,13 +25,13 @@ namespace Scripts
         }
 
         public void SetActive(bool active) => gameObject.SetActive(active);
-        public void SetPosition(Vector3 position) => transform.position = position;
-        public void Move(Vector3 delta) => transform.position += delta;
+        public void SetPosition(Vector3 position) => CachedTransform.position = position;
+        public void Move(Vector3 delta) => CachedTransform.position += delta;
 
         public void ResetForPool()
         {
-            transform.rotation = Quaternion.identity;
-            transform.localScale = Vector3.one;
+            CachedTransform.rotation = Quaternion.identity;
+            CachedTransform.localScale = Vector3.one;
         }
 
         public override void OnRent()
@@ -44,18 +45,16 @@ namespace Scripts
         {
             base.OnRelease();
             SetActive(false);
-            // Subscribers are disposed by presenter; Subject remains for next rent (no allocations).
+            // Keep the subject alive for pooled subscribers; just ensure no lingering observers misbehave.
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
             if ((targetMask.value & (1 << other.gameObject.layer)) == 0) return;
 
-            // Alloc-free capability check
             if (other.TryGetComponent<IDamageable>(out var damageable))
             {
                 hitTargets.OnNext(damageable);
-                Debug.Log("EnemyHit");
             }
         }
     }

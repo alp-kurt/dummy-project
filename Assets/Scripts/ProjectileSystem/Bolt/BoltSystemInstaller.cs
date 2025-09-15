@@ -14,6 +14,10 @@ namespace Scripts
         [SerializeField] private int min = 8;
         [SerializeField] private int max = 32;
 
+        [Header("Ricochet Config")]
+        [SerializeField, Min(0f)] private float edgePaddingWorld = 0.25f;
+        [SerializeField, Min(0f)] private float ricochetCooldown = 0.08f;
+
         public override void InstallBindings()
         {
             // Fail-fast checks
@@ -46,6 +50,14 @@ namespace Scripts
             Container.Bind<IBoltViewRenter>().To<BoltViewRenter>().AsSingle();
             Container.Bind<IBoltPresenterFactory>().To<BoltPresenterFactory>().AsSingle();
             Container.Bind<IBoltFactory>().To<BoltFactory>().AsSingle();
+
+            // Ricochet config binding
+            Container.Bind<float>().WithId("BoltEdgePaddingWorld")
+                .FromInstance(edgePaddingWorld).IfNotBound(); 
+
+            Container.Bind<float>().WithId("BoltRicochetCooldown")
+                .FromInstance(ricochetCooldown).IfNotBound(); 
+
         }
     }
 }

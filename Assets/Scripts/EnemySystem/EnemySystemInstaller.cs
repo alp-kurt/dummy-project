@@ -18,49 +18,41 @@ namespace Scripts
 
         public override void InstallBindings()
         {
-            // ---- Validation for pooling setup ----
-            if (enemyPrefab == null)
-                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Enemy prefab is not assigned.");
-            if (pooledParent == null)
-                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Pooled parent is not assigned.");
-            if (activeParent == null)
-                throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
+            // ---- Validation ----
+            if (enemyPrefab == null) throw new System.Exception($"{nameof(EnemySystemInstaller)}: Enemy prefab is not assigned.");
+            if (pooledParent == null) throw new System.Exception($"{nameof(EnemySystemInstaller)}: Pooled parent is not assigned.");
+            if (activeParent == null) throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
 
-            // ---- Scene singletons / globals ----
-            // Cross-cutting streams / services
+            // ---- Cross-cutting streams/services ----
             Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
 
+            // ---- Scene singleton: ActiveEnemiesRoot (use activeParent) ----
+            Container.Bind<Transform>()
+                     .WithId("ActiveEnemiesRoot")
+                     .FromInstance(activeParent)
+                     .AsSingle();
 
             // ---- Enemy view factory + pool ----
-            // Factory for EnemyView instances (parent under pooledParent on creation)
             Container.Bind<IObjectFactory<EnemyView>>()
                 .To<PrefabFactory<EnemyView>>()
                 .AsSingle()
                 .WithArguments(enemyPrefab, pooledParent);
 
-            // Typed pool for EnemyView
             Container.Bind<IObjectPool<EnemyView>>()
                 .To<EnemyViewPool>()
                 .AsSingle()
                 .WithArguments(min, max, pooledParent, activeParent);
 
-            // Composition for enemy creation
             Container.Bind<IEnemyViewRenter>().To<EnemyViewRenter>().AsSingle();
             Container.Bind<IEnemyPresenterFactory>().To<EnemyPresenterFactory>().AsSingle();
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
 
-            // ---- Wave Spawner MVP (merged from EnemyWaveSpawnerInstaller) ----
-            // Bind the view (explicit instance or lazy from hierarchy)
+            // ---- Wave Spawner MVP ----
             if (spawnerView)
-            {
                 Container.Bind<EnemyWaveSpawnerView>().FromInstance(spawnerView).AsSingle();
-            }
             else
-            {
                 Container.Bind<EnemyWaveSpawnerView>().FromComponentInHierarchy().AsSingle();
-            }
 
-            // Build model from bound view
             Container.Bind<IEnemyWaveSpawnerModel>()
                 .FromMethod(ctx =>
                 {
@@ -72,13 +64,7 @@ namespace Scripts
                 })
                 .AsSingle();
 
-            // Spawner presenter drives the loop; NonLazy to surface issues early
             Container.BindInterfacesAndSelfTo<EnemyWaveSpawnerPresenter>().AsSingle().NonLazy();
-
-            // NOTE:
-            // If any adapters/components need IEnemyHealthModel from DI instead of being initialized manually,
-            // you could also add: Container.Bind<IEnemyHealthModel>().To<EnemyHealthModel>().AsTransient();
-            // (Not required for the current adapter flow; EnemyPresenterFactory initializes the adapter directly.)
         }
     }
 }
