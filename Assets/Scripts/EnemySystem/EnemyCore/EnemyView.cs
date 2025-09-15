@@ -17,9 +17,8 @@ namespace Scripts
         [Tooltip("Optional visual root (scale/pos). Defaults to this Transform.")]
         [SerializeField] private Transform _root;
 
-        [Header("Gameplay")]
-        [Tooltip("Contact damage against the player.")]
-        [SerializeField, Min(0)] private int _contactDamage = 1;
+        // Contact damage is set by EnemyPresenter from EnemyStats.Damage at spawn.
+        private int _contactDamage = 1;
 
         [Header("Optional Modules")]
         [Tooltip("Optional. Found in children if not assigned.")]
@@ -34,7 +33,10 @@ namespace Scripts
         public EnemyHitFxView HitFxView => _hitFxView;
         public EnemyHealthBarView HealthBarView => _healthBarView;
 
+        /// <summary>How much damage this enemy deals to the player on contact (runtime cache of EnemyStats.Damage).</summary>
         public int ContactDamage => _contactDamage;
+
+        /// <summary>Presenter sets this from EnemyStats.Damage at spawn.</summary>
         public void SetContactDamage(int value) => _contactDamage = Mathf.Max(0, value);
 
         public Vector3 Position => (_root != null ? _root : transform).position;
@@ -83,7 +85,6 @@ namespace Scripts
             if (!_spriteRenderer) _spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
             if (!_rigidbody2D) _rigidbody2D = GetComponentInChildren<Rigidbody2D>(true) ?? GetComponent<Rigidbody2D>();
             if (!_root) _root = transform;
-            _contactDamage = Mathf.Max(0, _contactDamage);
 
             if (!_spriteRenderer)
                 Debug.LogWarning("[EnemyView] SpriteRenderer not assigned or found in children.", this);
