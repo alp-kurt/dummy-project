@@ -60,14 +60,26 @@ Scripts/Players/PlayerHealth
 
 ### Physics Layers
 
-Create/ensure layers: Player, Enemy, Projectile.
+1. Create/ensure layers: Player, Enemy, Projectile.
 
-In Project Settings → Physics 2D → Layer Collision Matrix: enable Player ↔ Enemy; disable irrelevant pairs.
+2. In Project Settings → Physics 2D → Layer Collision Matrix: enable Player ↔ Enemy; disable irrelevant pairs.
 
-In PlayerView, confirm the enemyLayerName (default "Enemy").
+3. In PlayerView, confirm the enemyLayerName (default "Enemy").
 
 ### Enemy Prefabs
 
-Put enemy colliders on Enemy layer.
+1. Put enemy colliders on Enemy layer.
 
-Place EnemyView on the same GameObject as the collider (preferred). Parent lookup is supported as fallback
+2. Place EnemyView on the same GameObject as the collider (preferred). Parent lookup is supported as fallback
+
+### Scene Wiring
+
+1. Add PlayerInstaller to the scene and assign:
+
+2. JoystickView (emits IObservable<Vector2> OnInput)
+
+3. PlayerView (on Player root with collider set to Player layer)
+
+4. PlayerHealthView (slider UI)
+
+5. Set Player Max Health and Player Move Speed in PlayerInstaller.
