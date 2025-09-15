@@ -7,63 +7,63 @@ namespace Scripts
 {
     public sealed class PlayerPresenter : IInitializable, ITickable, IDisposable
     {
-        private readonly JoystickView m_joystickView;
-        private readonly PlayerView m_view;
-        private readonly IPlayerModel m_model;
-        private readonly IPlayerHealthModel m_health;
+        private readonly JoystickView _joystickView;
+        private readonly PlayerView _view;
+        private readonly IPlayerModel _model;
+        private readonly IPlayerHealthModel _health;
 
-        private readonly TimeSpan m_hitCooldown = TimeSpan.FromMilliseconds(350);
-        private float m_nextHitTime;
-        private bool m_disposed;
+        private readonly TimeSpan _hitCooldown = TimeSpan.FromMilliseconds(350);
+        private float _nextHitTime;
+        private bool _disposed;
 
         private IDisposable _inputSub;
         private Action<EnemyView> _onEnemyCollidedHandler;
 
         public PlayerPresenter(JoystickView joystickView, PlayerView view, IPlayerModel model, IPlayerHealthModel health)
         {
-            m_joystickView = joystickView;
-            m_view = view;
-            m_model = model;
-            m_health = health;
+            _joystickView = joystickView;
+            _view = view;
+            _model = model;
+            _health = health;
         }
 
         public void Initialize()
         {
-            _inputSub = m_joystickView.OnInput
+            _inputSub = _joystickView.OnInput
                 .DistinctUntilChanged()
-                .Subscribe(m_model.SetMoveInput);
+                .Subscribe(_model.SetMoveInput);
 
             _onEnemyCollidedHandler = e =>
             {
-                if (Time.time < m_nextHitTime) return;
-                m_nextHitTime = Time.time + (float)m_hitCooldown.TotalSeconds;
+                if (Time.time < _nextHitTime) return;
+                _nextHitTime = Time.time + (float)_hitCooldown.TotalSeconds;
 
                 var dmg = (e != null && e.ContactDamage > 0) ? e.ContactDamage : 1;
-                m_health.ReceiveDamage(dmg);
+                _health.ReceiveDamage(dmg);
             };
 
-            m_view.OnEnemyCollided += _onEnemyCollidedHandler;
+            _view.OnEnemyCollided += _onEnemyCollidedHandler;
         }
 
         public void Tick()
         {
-            var delta = m_model.Step(Time.deltaTime);
-            m_view.Translate(delta);
+            var delta = _model.Step(Time.deltaTime);
+            _view.Translate(delta);
         }
 
         public void Dispose()
         {
-            if (m_disposed) return;
+            if (_disposed) return;
 
             _inputSub?.Dispose();
 
             if (_onEnemyCollidedHandler != null)
             {
-                m_view.OnEnemyCollided -= _onEnemyCollidedHandler;
+                _view.OnEnemyCollided -= _onEnemyCollidedHandler;
                 _onEnemyCollidedHandler = null;
             }
 
-            m_disposed = true;
+            _disposed = true;
         }
     }
 }

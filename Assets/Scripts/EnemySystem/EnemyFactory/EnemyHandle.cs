@@ -8,31 +8,31 @@ namespace Scripts
     /// </summary>
     public sealed class EnemyHandle : IEnemyHandle
     {
-        private readonly EnemyView m_view;
-        private readonly EnemyPresenter m_presenter;
-        private readonly IEnemyViewRenter m_renter;
+        private readonly EnemyView _view;
+        private readonly EnemyPresenter _presenter;
+        private readonly IEnemyViewRenter _renter;
 
         public EnemyHandle(EnemyView view, EnemyPresenter presenter, IEnemyViewRenter renter)
         {
-            m_view = view;
-            m_presenter = presenter;
-            m_renter = renter;
+            _view = view;
+            _presenter = presenter;
+            _renter = renter;
         }
 
-        public EnemyView View => m_view;
-        public EnemyPresenter Presenter => m_presenter;
+        public EnemyView View => _view;
+        public EnemyPresenter Presenter => _presenter;
 
-        public IObservable<Unit> ReturnedToPool => m_presenter.ReturnedToPool;
+        public IObservable<Unit> ReturnedToPool => _presenter.ReturnedToPool;
 
-        public void Spawn() => m_presenter.SpawnFromPool();
-        public void Despawn() => m_presenter.DespawnToPool();
+        public void Spawn() => _presenter.SpawnFromPool();
+        public void Despawn() => _presenter.DespawnToPool();
 
         public void Release()
         {
             // Ensures visual/gameplay teardown before returning to pool
             Despawn();
-            m_presenter.Dispose();
-            m_renter.Return(m_view);
+            _presenter.Dispose();
+            _renter.Return(_view);
         }
     }
 }

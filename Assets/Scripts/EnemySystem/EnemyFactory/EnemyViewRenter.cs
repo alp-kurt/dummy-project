@@ -7,16 +7,16 @@ namespace Scripts
     /// </summary>
     public sealed class EnemyViewRenter : IEnemyViewRenter
     {
-        private readonly IObjectPool<EnemyView> m_pool;
+        private readonly IObjectPool<EnemyView> _pool;
 
         public EnemyViewRenter(IObjectPool<EnemyView> pool)
         {
-            m_pool = pool;
+            _pool = pool;
         }
 
         public EnemyView Rent(Vector3 worldPosition)
         {
-            var view = m_pool.GetObject();
+            var view = _pool.GetObject();
 
             // Baseline reset to avoid state bleeding
             view.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
@@ -27,7 +27,7 @@ namespace Scripts
 
         public void Return(EnemyView view)
         {
-            m_pool.ReleaseObject(view);
+            _pool.ReleaseObject(view);
         }
     }
 }

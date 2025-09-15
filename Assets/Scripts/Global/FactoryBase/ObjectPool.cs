@@ -21,11 +21,11 @@ namespace Scripts
     /// </remarks>
     public class ObjectPool<T> : IObjectPool<T> where T : IPoolableObject
     {
-        private readonly Queue<T> m_available = new Queue<T>();
-        private readonly HashSet<T> m_inUse = new HashSet<T>();
-        private readonly IObjectFactory<T> m_factory;
-        private readonly int m_min;
-        private readonly int m_max;
+        private readonly Queue<T> _available = new Queue<T>();
+        private readonly HashSet<T> _inUse = new HashSet<T>();
+        private readonly IObjectFactory<T> _factory;
+        private readonly int _min;
+        private readonly int _max;
 
         /// <summary>
         /// Creates a new pool and prewarms it with <paramref name="min"/> instances.
@@ -36,17 +36,17 @@ namespace Scripts
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="factory"/> is null.</exception>
         public ObjectPool(IObjectFactory<T> factory, int min, int max)
         {
-            m_factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            m_min = Math.Max(0, min);
-            m_max = Math.Max(m_min, max);
-            Prewarm(m_min);
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _min = Math.Max(0, min);
+            _max = Math.Max(_min, max);
+            Prewarm(_min);
         }
 
         /// <inheritdoc/>
-        public int AvailableCount => m_available.Count;
+        public int AvailableCount => _available.Count;
 
         /// <inheritdoc/>
-        public int InUseCount => m_inUse.Count;
+        public int InUseCount => _inUse.Count;
 
         /// <inheritdoc/>
         /// <exception cref="InvalidOperationException">
@@ -54,10 +54,10 @@ namespace Scripts
         /// </exception>
         public T GetObject()
         {
-            T instance = m_available.Count > 0 ? m_available.Dequeue() : CreateIfAllowed();
+            T instance = _available.Count > 0 ? _available.Dequeue() : CreateIfAllowed();
             if (instance == null) throw new InvalidOperationException("Pool depleted and max reached.");
 
-            m_inUse.Add(instance);
+            _inUse.Add(instance);
             OnRented(instance);
             return instance;
         }
@@ -65,16 +65,16 @@ namespace Scripts
         /// <inheritdoc/>
         public bool TryGetObject(out T instance)
         {
-            if (m_available.Count == 0 && (m_available.Count + m_inUse.Count) >= m_max)
+            if (_available.Count == 0 && (_available.Count + _inUse.Count) >= _max)
             {
                 instance = default;
                 return false;
             }
 
-            instance = (m_available.Count > 0) ? m_available.Dequeue() : CreateIfAllowed();
+            instance = (_available.Count > 0) ? _available.Dequeue() : CreateIfAllowed();
             if (instance == null) return false;
 
-            m_inUse.Add(instance);
+            _inUse.Add(instance);
             OnRented(instance);
             return true;
         }
@@ -83,10 +83,10 @@ namespace Scripts
         public void ReleaseObject(T obj)
         {
             if (obj == null) return;
-            if (!m_inUse.Remove(obj)) return; // Guard: ignore unknown or duplicate releases.
+            if (!_inUse.Remove(obj)) return; // Guard: ignore unknown or duplicate releases.
 
             OnReleased(obj);
-            m_available.Enqueue(obj);
+            _available.Enqueue(obj);
         }
 
         #region Hooks
@@ -116,9 +116,9 @@ namespace Scripts
         {
             for (int i = 0; i < count; i++)
             {
-                var inst = m_factory.CreateNew();
+                var inst = _factory.CreateNew();
                 OnCreated(inst);
-                m_available.Enqueue(inst);
+                _available.Enqueue(inst);
             }
         }
 
@@ -127,8 +127,8 @@ namespace Scripts
         /// </summary>
         private T CreateIfAllowed()
         {
-            if (m_available.Count + m_inUse.Count >= m_max) return default;
-            var inst = m_factory.CreateNew();
+            if (_available.Count + _inUse.Count >= _max) return default;
+            var inst = _factory.CreateNew();
             OnCreated(inst);
             return inst;
         }

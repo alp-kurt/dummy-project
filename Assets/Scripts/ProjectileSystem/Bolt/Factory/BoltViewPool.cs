@@ -8,8 +8,8 @@ namespace Scripts
     /// </summary>
     public sealed class BoltViewPool : ObjectPool<BoltView>
     {
-        private readonly Transform m_pooledParent;
-        private readonly Transform m_activeParent;
+        private readonly Transform _pooledParent;
+        private readonly Transform _activeParent;
 
         public BoltViewPool(
             IObjectFactory<BoltView> factory,
@@ -19,30 +19,30 @@ namespace Scripts
             Transform activeParent
         ) : base(factory, min, max)
         {
-            m_pooledParent = pooledParent;
-            m_activeParent = activeParent;
+            _pooledParent = pooledParent;
+            _activeParent = activeParent;
         }
 
         protected override void OnCreated(BoltView view)
         {
             base.OnCreated(view);
-            if (m_pooledParent != null)
-                view.CachedTransform.SetParent(m_pooledParent, worldPositionStays: false);
+            if (_pooledParent != null)
+                view.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
         }
 
         protected override void OnRented(BoltView view)
         {
             base.OnRented(view);
-            if (m_activeParent != null)
-                view.CachedTransform.SetParent(m_activeParent, worldPositionStays: true);
+            if (_activeParent != null)
+                view.CachedTransform.SetParent(_activeParent, worldPositionStays: true);
             view.OnRent(); // Provided by PooledView
         }
 
         protected override void OnReleased(BoltView view)
         {
             base.OnReleased(view);
-            if (m_pooledParent != null)
-                view.CachedTransform.SetParent(m_pooledParent, worldPositionStays: false);
+            if (_pooledParent != null)
+                view.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
             view.OnRelease(); // Provided by PooledView
         }
     }

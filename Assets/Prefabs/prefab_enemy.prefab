@@ -392,12 +392,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06762c54b95c54fc4aeca629951de743, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spriteRenderer: {fileID: 1708330073458789133}
-  m_rigidbody2D: {fileID: 4223929050542268630}
-  m_root: {fileID: 2803483230503004728}
-  m_contactDamage: 5
-  m_hitFxView: {fileID: -8964983658330261192}
-  m_healthBarView: {fileID: 1104438249064780250}
+  _spriteRenderer: {fileID: 1708330073458789133}
+  _rigidbody2D: {fileID: 4223929050542268630}
+  _root: {fileID: 2803483230503004728}
+  _contactDamage: 0
+  _hitFxView: {fileID: -8964983658330261192}
+  _healthBarView: {fileID: 1104438249064780250}
 --- !u!50 &4223929050542268630
 Rigidbody2D:
   serializedVersion: 4
@@ -536,14 +536,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21ca2f6a5e1f1421a83a6bbae6ef2eb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spriteRenderer: {fileID: 1708330073458789133}
-  m_flashIn: 0.05
-  m_flashOut: 0.12
-  m_scaleMin: 0.9
-  m_scaleIn: 0.06
-  m_scaleOut: 0.1
-  m_easeIn: 9
-  m_easeOut: 27
+  _spriteRenderer: {fileID: 1708330073458789133}
+  _flashIn: 0.05
+  _flashOut: 0.12
+  _scaleMin: 0.9
+  _scaleIn: 0.06
+  _scaleOut: 0.1
+  _easeIn: 9
+  _easeOut: 27
 --- !u!114 &1104438249064780250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -556,8 +556,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa8037c08a2ad4b4b8148f31553ca849, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_slider: {fileID: 504836067191513797}
-  m_valueTween: 0.2
+  _slider: {fileID: 504836067191513797}
+  _valueTween: 0.2
 --- !u!1 &8469881332724013253
 GameObject:
   m_ObjectHideFlags: 0

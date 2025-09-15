@@ -10,8 +10,8 @@ namespace Scripts
     /// </typeparam>
     public sealed class PrefabFactory<T> : IObjectFactory<T> where T : Component, IPoolableObject
     {
-        private readonly T m_prefab;
-        private readonly Transform m_parent;
+        private readonly T _prefab;
+        private readonly Transform _parent;
 
         /// <summary>
         /// Binds a prefab and parent transform for subsequent instantiation.
@@ -20,8 +20,8 @@ namespace Scripts
         /// <param name="parent">Optional parent transform for spawned instances.</param>
         public PrefabFactory(T prefab, Transform parent)
         {
-            m_prefab = prefab;
-            m_parent = parent;
+            _prefab = prefab;
+            _parent = parent;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Scripts
         /// </summary>
         public T CreateNew()
         {
-            return Object.Instantiate(m_prefab, m_parent);
+            return Object.Instantiate(_prefab, _parent);
         }
     }
 }

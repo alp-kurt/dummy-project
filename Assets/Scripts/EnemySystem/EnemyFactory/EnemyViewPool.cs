@@ -7,8 +7,8 @@ namespace Scripts
     /// </summary>
     public sealed class EnemyViewPool : ObjectPool<EnemyView>
     {
-        private readonly Transform m_pooledParent;
-        private readonly Transform m_activeParent;
+        private readonly Transform _pooledParent;
+        private readonly Transform _activeParent;
 
         // DI supplies factory; installer supplies min/max + parents
         public EnemyViewPool(
@@ -18,22 +18,22 @@ namespace Scripts
             Transform activeParent
         ) : base(factory, min, max)
         {
-            m_pooledParent = pooledParent;
-            m_activeParent = activeParent;
+            _pooledParent = pooledParent;
+            _activeParent = activeParent;
         }
 
         protected override void OnCreated(EnemyView instance)
         {
-            if (m_pooledParent != null)
-                instance.transform.SetParent(m_pooledParent, false);
+            if (_pooledParent != null)
+                instance.transform.SetParent(_pooledParent, false);
 
             base.OnCreated(instance); // default: inactive
         }
 
         protected override void OnRented(EnemyView instance)
         {
-            if (m_activeParent != null)
-                instance.transform.SetParent(m_activeParent, false);
+            if (_activeParent != null)
+                instance.transform.SetParent(_activeParent, false);
 
             base.OnRented(instance);  // default: OnRent() activates
         }
@@ -41,8 +41,8 @@ namespace Scripts
         protected override void OnReleased(EnemyView instance)
         {
             base.OnReleased(instance); // default: OnRelease() deactivates
-            if (m_pooledParent != null)
-                instance.transform.SetParent(m_pooledParent, false);
+            if (_pooledParent != null)
+                instance.transform.SetParent(_pooledParent, false);
         }
     }
 }

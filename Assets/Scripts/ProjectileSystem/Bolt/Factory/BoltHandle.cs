@@ -6,24 +6,24 @@ namespace Scripts
 {
     public sealed class BoltHandle : IBoltHandle, IDisposable
     {
-        private readonly IBoltViewRenter m_renter;
-        private readonly Subject<Unit> m_returnedSubject = new();
-        private readonly CompositeDisposable m_disposables = new();
-        private bool m_isDespawned;
+        private readonly IBoltViewRenter _renter;
+        private readonly Subject<Unit> _returnedSubject = new();
+        private readonly CompositeDisposable _disposables = new();
+        private bool _isDespawned;
 
         public BoltView View { get; }
         public BoltPresenter Presenter { get; }
-        public IObservable<Unit> ReturnedToPool => m_returnedSubject;
+        public IObservable<Unit> ReturnedToPool => _returnedSubject;
 
         public BoltHandle(IBoltViewRenter renter, BoltView view, BoltPresenter presenter)
         {
-            m_renter = renter;
+            _renter = renter;
             View = view;
             Presenter = presenter;
 
             Presenter.DespawnRequested
             .Subscribe(_ => Despawn())
-            .AddTo(m_disposables);
+            .AddTo(_disposables);
         }
 
         public void Spawn(Vector3 position, Vector3 directionNormalized)
@@ -33,12 +33,12 @@ namespace Scripts
 
         public void Despawn()
         {
-            if (m_isDespawned) return;
-            m_isDespawned = true;
+            if (_isDespawned) return;
+            _isDespawned = true;
 
             Presenter.PrepareForDespawn();  // stops motion, deactivates view
-            m_renter.Return(View);          // physically return to pool
-            m_returnedSubject.OnNext(Unit.Default);
+            _renter.Return(View);          // physically return to pool
+            _returnedSubject.OnNext(Unit.Default);
         }
 
         public void Release()
@@ -49,9 +49,9 @@ namespace Scripts
 
         public void Dispose()
         {
-            m_disposables.Dispose();
+            _disposables.Dispose();
             Presenter?.Dispose();
-            m_returnedSubject.OnCompleted();
+            _returnedSubject.OnCompleted();
         }
     }
 }

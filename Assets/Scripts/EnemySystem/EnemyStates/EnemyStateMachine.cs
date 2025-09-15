@@ -2,34 +2,34 @@ namespace Scripts
 {
     public sealed class EnemyStateMachine
     {
-        private readonly EnemyContext m_ctx;
-        private IEnemyState m_current;
+        private readonly EnemyContext _ctx;
+        private IEnemyState _current;
 
-        public IEnemyState Current => m_current;
-        public string CurrentName => m_current?.Name ?? "None";
+        public IEnemyState Current => _current;
+        public string CurrentName => _current?.Name ?? "None";
 
         public EnemyStateMachine(EnemyContext ctx)
         {
-            m_ctx = ctx;
+            _ctx = ctx;
         }
 
         public void Start(IEnemyState startState)
         {
-            m_current = startState;
-            m_current?.OnEnter(m_ctx);
+            _current = startState;
+            _current?.OnEnter(_ctx);
         }
 
         public void Update(float deltaTime)
         {
-            m_current?.OnUpdate(m_ctx, deltaTime);
+            _current?.OnUpdate(_ctx, deltaTime);
         }
 
         public void Transition(IEnemyState next)
         {
-            if (next == null || next == m_current) return;
-            m_current?.OnExit(m_ctx);
-            m_current = next;
-            m_current?.OnEnter(m_ctx);
+            if (next == null || next == _current) return;
+            _current?.OnExit(_ctx);
+            _current = next;
+            _current?.OnEnter(_ctx);
         }
     }
 }

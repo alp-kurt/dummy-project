@@ -10,7 +10,7 @@ namespace Scripts
     {
         private readonly DiContainer m_container;
         private readonly PlayerView m_player;
-        private readonly IEnemyDeathStream m_deathBus;
+        private readonly IEnemyDeathStream _;
 
         public EnemyPresenterFactory(
             DiContainer container,
@@ -19,7 +19,7 @@ namespace Scripts
         {
             m_container = container;
             m_player = player;
-            m_deathBus = deathBus;
+            _ = deathBus;
         }
 
         public EnemyPresenter Create(EnemyView view, EnemyStats stats)
@@ -40,7 +40,7 @@ namespace Scripts
                 m_player,
                 view,
                 stats,
-                m_deathBus
+                _
             });
 
             return presenter;
