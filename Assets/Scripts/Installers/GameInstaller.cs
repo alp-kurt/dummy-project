@@ -15,9 +15,9 @@ namespace Scripts
                   .AsSingle();
 
             Container.Bind<Transform>()
-       .WithId("ActiveEnemiesRoot")
-       .FromInstance(activeEnemiesRoot)
-       .AsSingle();
+                   .WithId("ActiveEnemiesRoot")
+                   .FromInstance(activeEnemiesRoot)
+                   .AsSingle();
         }
     }
 }

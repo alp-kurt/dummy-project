@@ -18,4 +18,4 @@ MonoBehaviour:
   - stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
     countPerWave: 4
   waveIntervalSeconds: 1
-  offscreenPadding: 0
+  offscreenPadding: 1

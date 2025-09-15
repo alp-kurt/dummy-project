@@ -11,16 +11,25 @@ namespace Scripts
         EnemyView View { get; }
         EnemyPresenter Presenter { get; }
 
-        /// <summary>Shows the enemy (activates view, resets state as "spawned").</summary>
+        /// <summary>
+        /// Shows the enemy (activates view, resets state as "spawned").
+        /// </summary>
         void Spawn();
 
-        /// <summary>Hides the enemy (stops movement, deactivates view).</summary>
+        /// <summary>
+        /// Hides the enemy (stops movement, deactivates view).
+        /// </summary>
         void Despawn();
 
-        /// <summary>Tears down presenter subscriptions and returns the view to the pool.</summary>
+        /// <summary>
+        /// Tears down presenter subscriptions and returns the view to the pool.
+        /// Calls Despawn() internally to ensure proper cleanup.
+        /// </summary>
         void Release();
 
-        /// <summary>Forward of the model's ReturnedToPool signal, useful for spawners.</summary>
+        /// <summary>
+        /// Pooling signal (sourced from the model, exposed via the presenter) for spawners.
+        /// </summary>
         IObservable<Unit> ReturnedToPool { get; }
     }
 }

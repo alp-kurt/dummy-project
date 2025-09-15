@@ -1,6 +1,7 @@
 using System;
 using UniRx;
 using UnityEngine;
+
 namespace Scripts
 {
     public sealed class EnemyWaveSpawnerModel : IEnemyWaveSpawnerModel

@@ -11,15 +11,17 @@ namespace Scripts
 
         [Header("Required scene references")]
         [SerializeField] private JoystickView joystickView;
-        [SerializeField] private PlayerView playerView;
         [SerializeField] private PlayerHealthView playerHealthView;
 
         public override void InstallBindings()
         {
             // Views
             Container.BindInstance(joystickView);
-            Container.BindInstance(playerView);
             Container.BindInstance(playerHealthView);
+
+            Container.Bind<PlayerView>()
+         .FromComponentInHierarchy()
+         .AsSingle();
 
             // Player core MVP (inject speed)
             Container.Bind<IPlayerModel>()

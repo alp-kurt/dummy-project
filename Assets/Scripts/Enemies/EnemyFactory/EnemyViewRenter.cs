@@ -17,7 +17,11 @@ namespace Scripts
         public EnemyView Rent(Vector3 worldPosition)
         {
             var view = m_pool.GetObject();
-            view.transform.position = worldPosition;
+
+            // Baseline reset to avoid state bleeding
+            view.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+            view.transform.localScale = Vector3.one;
+
             return view;
         }
 

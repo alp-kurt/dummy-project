@@ -52,6 +52,7 @@ namespace Scripts
             m_moveSpeed = Mathf.Max(0f, stats.movementSpeed);
             m_damage = Mathf.Max(0, stats.damage);
 
+            // UseUnscaledTime defaults to false; flip via the EnemyContext ctor overload if desired.
             m_ctx = new EnemyContext(this, k_OffscreenDespawnSeconds, k_DeathDespawnSeconds);
             m_fsm = new EnemyStateMachine(m_ctx);
 
@@ -59,7 +60,8 @@ namespace Scripts
             m_canMove.Value = false;
             m_deadTransitioned = false;
 
-            m_fsm.Start(new EnemyState_Pooled());
+            // Allocation-free start
+            m_fsm.Start(EnemyState_Pooled.Instance);
         }
 
         public void SetHealth(IEnemyHealthModel health)
@@ -72,10 +74,9 @@ namespace Scripts
                 if (!m_deadTransitioned)
                 {
                     m_deadTransitioned = true;
-                    m_fsm.Transition(new EnemyState_Dead());
+                    m_fsm.Transition(EnemyState_Dead.Instance);
                 }
-            }
-            );
+            });
         }
 
         public void ResetForSpawn()
@@ -84,10 +85,12 @@ namespace Scripts
             IsOnScreenInternal = false;
             m_canMove.Value = true;
 
-            // Ensure health resets for new lifetime
+            // Safety: cancel any timers from a previous lifetime
+            m_ctx?.CancelAllTimers();
+
             m_health?.ResetFull();
 
-            m_fsm.Transition(new EnemyState_OutOfScreen());
+            m_fsm.Transition(EnemyState_OutOfScreen.Instance);
         }
 
         public void Tick(float deltaTime) => m_fsm.Update(Mathf.Max(0f, deltaTime));
@@ -98,9 +101,9 @@ namespace Scripts
 
             var cur = m_fsm.Current;
             if (isOnScreen && cur is EnemyState_OutOfScreen)
-                m_fsm.Transition(new EnemyState_Active());
+                m_fsm.Transition(EnemyState_Active.Instance);   
             else if (!isOnScreen && cur is EnemyState_Active)
-                m_fsm.Transition(new EnemyState_OutOfScreen());
+                m_fsm.Transition(EnemyState_OutOfScreen.Instance); 
         }
     }
 }

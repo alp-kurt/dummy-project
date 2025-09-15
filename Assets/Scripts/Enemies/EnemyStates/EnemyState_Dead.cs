@@ -6,33 +6,42 @@ namespace Scripts
 {
     public sealed class EnemyState_Dead : EnemyStateBase
     {
+        public static readonly EnemyState_Dead Instance = new EnemyState_Dead();
+        private EnemyState_Dead() { }
+
         public override string Name => "Dead";
-        private CancellationTokenSource m_cts;
 
         public override void OnEnter(EnemyContext ctx)
         {
             ctx.SetCanMove(false);
             ctx.EmitDied();
-            m_cts = new CancellationTokenSource();
-            DespawnAfterAsync(ctx, m_cts.Token).Forget();
+
+            var cts = new CancellationTokenSource();
+            ctx.StartDeathTimer(cts);
+
+            DespawnAfterAsync(ctx, cts.Token).Forget();
         }
 
         public override void OnExit(EnemyContext ctx)
         {
-            m_cts?.Cancel();
-            m_cts?.Dispose();
-            m_cts = null;
+            ctx.CancelDeathTimer();
         }
 
         private async UniTaskVoid DespawnAfterAsync(EnemyContext ctx, CancellationToken token)
         {
             try
             {
+                var delayType = ctx.UseUnscaledTime ? DelayType.UnscaledDeltaTime : DelayType.DeltaTime;
+
                 await UniTask.Delay(TimeSpan.FromSeconds(ctx.DeathDespawnSeconds),
-                                    DelayType.DeltaTime, PlayerLoopTiming.Update, token);
-                ctx.Transition(new EnemyState_Pooled());
+                                    delayType, PlayerLoopTiming.Update, token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    ctx.Transition(EnemyState_Pooled.Instance);
+                }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) { /* expected on exit */ }
         }
     }
 }

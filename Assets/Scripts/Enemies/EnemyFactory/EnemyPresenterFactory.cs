@@ -1,37 +1,49 @@
 using Zenject;
-using UnityEngine; // for Debug.LogWarning
 
 namespace Scripts
 {
+    /// <summary>
+    /// Builds a fully wired EnemyPresenter (+ model/health) for a rented EnemyView using the given stats.
+    /// Globals (PlayerView, IEnemyDeathStream) are injected once into this factory.
+    /// </summary>
     public sealed class EnemyPresenterFactory : IEnemyPresenterFactory
     {
         private readonly DiContainer m_container;
+        private readonly PlayerView m_player;
+        private readonly IEnemyDeathStream m_deathBus;
 
-        public EnemyPresenterFactory(DiContainer container)
+        public EnemyPresenterFactory(
+            DiContainer container,
+            PlayerView player,
+            IEnemyDeathStream deathBus)
         {
             m_container = container;
+            m_player = player;
+            m_deathBus = deathBus;
         }
 
         public EnemyPresenter Create(EnemyView view, EnemyStats stats)
         {
-            // Create per-enemy instances explicitly
+            // Per-enemy instances
             var model = m_container.Instantiate<EnemyModel>();
-            var health = m_container.Instantiate<EnemyHealthModel>(); // single source of truth
+            var health = m_container.Instantiate<EnemyHealthModel>();
 
-            // Wire the same health instance to the damageable adapter (once per spawn)
-            var adapter = view.GetComponent<EnemyDamageableAdapter>();
-            if (adapter != null)
+            // Manual wiring for Unity component adapter (consistent with your hybrid DI style)
+            var dmgAdapter = view.GetComponent<EnemyDamageableAdapter>();
+            dmgAdapter?.Initialize(health);
+
+            // Construct the presenter with explicit dependencies (no Resolve calls here)
+            var presenter = m_container.Instantiate<EnemyPresenter>(new object[]
             {
-                adapter.Initialize(health);
-            }
+                model,
+                health,
+                m_player,
+                view,
+                stats,
+                m_deathBus
+            });
 
-            // Cross-cutting deps
-            var player = m_container.Resolve<PlayerView>();
-            var deathBus = m_container.Resolve<IEnemyDeathStream>();
-
-            // Pass the same health instance to the presenter
-            return m_container.Instantiate<EnemyPresenter>(
-                new object[] { model, health, player, view, stats, deathBus });
+            return presenter;
         }
     }
 }
