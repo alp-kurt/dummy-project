@@ -43,7 +43,7 @@ A modular, Enemy System built with pooling, and a lightweight FSM. It’s tuned 
 * EnemyView.cs                 // render/motion shell (lean)
 * EnemyPresenter.cs            // wires model↔view, physics tick, subscriptions
 * EnemyStats.cs                // base SO (MinionStats.cs, ChampionStats.cs)
-* EnemyHitFxView.cs            // flash + squash; pool-safe
+* EnemyHitFxView.cs            // squash; pool-safe
 
 ### Enemies/EnemyHealth/
 
