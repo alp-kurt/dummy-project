@@ -157,7 +157,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activeEnemiesRoot: {fileID: 1183987737}
-  camera: {fileID: 6598591594767267529}
 --- !u!4 &343482765
 Transform:
   m_ObjectHideFlags: 0
@@ -225,6 +224,7 @@ MonoBehaviour:
   playerMoveSpeed: 2
   joystickView: {fileID: 932757184}
   playerHealthView: {fileID: 1239021187}
+  camera: {fileID: 0}
 --- !u!114 &343482771
 MonoBehaviour:
   m_ObjectHideFlags: 0

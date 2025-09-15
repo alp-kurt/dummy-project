@@ -13,6 +13,9 @@ namespace Scripts
         [SerializeField] private JoystickView joystickView;
         [SerializeField] private PlayerHealthView playerHealthView;
 
+        [Header("Camera")]
+        [SerializeField] private Camera camera;
+
         public override void InstallBindings()
         {
             // Views
@@ -41,6 +44,11 @@ namespace Scripts
             Container.BindInterfacesTo<PlayerHealthPresenter>()
                      .AsSingle()
                      .NonLazy();
+
+            // Camera
+            Container.Bind<Camera>()
+                    .FromComponentInHierarchy()
+                    .AsSingle();
         }
     }
 }
