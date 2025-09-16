@@ -20,7 +20,6 @@ namespace Scripts
         // Re-created on each spawn; torn down on despawn.
         private CompositeDisposable _spawnDisposer;
 
-        // NEW: Despawn request signal for handles/factory.
         protected readonly Subject<Unit> _despawnRequested = new Subject<Unit>();
         public IObservable<Unit> DespawnRequested => _despawnRequested;
 

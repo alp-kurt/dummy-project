@@ -7,6 +7,13 @@ using Zenject;
 
 namespace Scripts
 {
+    /// <summary>
+    /// Drives enemy wave spawning on an async loop:
+    /// - Loops waves with a fixed interval.
+    /// - Spawns each wave with per-frame budget or per-spawn delay pacing.
+    /// - Creates enemies via factory and wires pool return -> release.
+    /// Off-screen spawn positions are randomized around the camera edges.
+    /// </summary>
     public sealed class EnemyWaveSpawnerPresenter : IInitializable, IDisposable
     {
         private readonly EnemyWaveSpawnerView _view;
@@ -14,6 +21,10 @@ namespace Scripts
         private readonly IEnemyFactory _enemyFactory;
         private readonly Camera _camera;
 
+        /// <summary>
+        /// Optional optimization interface: factory can avoid throwing on unavailable prefabs
+        /// and simply return false when creation isn't possible.
+        /// </summary>
         public interface IEnemyFactoryTry
         {
             bool TryCreate(EnemyStats stats, Vector3 worldPosition, out IEnemyHandle handle);
@@ -23,6 +34,9 @@ namespace Scripts
         private CancellationTokenSource _cts;
         private System.Random _rng;
 
+        /// <summary>
+        /// DI entry point. The <paramref name="camera"/> comes from your Player/Scene installer.
+        /// </summary>
         [Inject]
         public EnemyWaveSpawnerPresenter(
             EnemyWaveSpawnerView view,
@@ -36,6 +50,9 @@ namespace Scripts
             _camera = camera;
         }
 
+        /// <summary>
+        /// Initializes RNG and starts the async wave loop.
+        /// </summary>
         public void Initialize()
         {
             _rng = (_model.RandomSeed == 0) ? new System.Random() : new System.Random(_model.RandomSeed);
@@ -50,6 +67,12 @@ namespace Scripts
             _disposables.Dispose();
         }
 
+        /// <summary>
+        /// Main async driver:
+        /// - Spawn a single wave
+        /// - Advance wave index/state in the model
+        /// - Wait for the configured interval and repeat
+        /// </summary>
         private async UniTaskVoid RunLoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -60,6 +83,16 @@ namespace Scripts
             }
         }
 
+        /// <summary>
+        /// Emits the current wave's entries with pacing:
+        /// - If SpawnDelaySeconds &gt; 0 -> wait that delay per spawn.
+        /// - Else if SpawnBudgetPerFrame &gt; 0 -> yield after N spawns in the same frame.
+        /// - Else -> yield each spawn to avoid long frames.
+        ///
+        /// Each created enemy:
+        /// - Subscribes to ReturnedToPool once -> Release handle.
+        /// - Then Spawn() is called to begin its lifetime.
+        /// </summary>
         private async UniTask SpawnSingleWaveAsync(CancellationToken token)
         {
             var wave = _model.Wave;
@@ -83,11 +116,13 @@ namespace Scripts
                     IEnemyHandle handle = null;
                     if (_enemyFactory is IEnemyFactoryTry tryFactory)
                     {
+                        // Preferred: non-throwing attempt (pool empty, etc.)
                         if (!tryFactory.TryCreate(entry.Stats, pos, out handle))
                             continue;
                     }
                     else
                     {
+                        // Fallback: may throw if creation is not possible; swallow and skip
                         try
                         {
                             handle = _enemyFactory.Create(entry.Stats, pos);
@@ -98,10 +133,11 @@ namespace Scripts
                         }
                     }
 
+                    // Auto-release handle when the enemy returns to pool (one-shot).
                     handle.ReturnedToPool
                           .Take(1)
                           .Subscribe(_ => handle.Release())
-                          .AddTo(handle.View);
+                          .AddTo(handle.View); // tie subscription to the enemy view lifetime
 
                     handle.Spawn();
 
@@ -126,6 +162,11 @@ namespace Scripts
             }
         }
 
+        /// <summary>
+        /// Returns a random position just outside the camera's view rectangle:
+        /// picks one of four sides uniformly, then samples uniformly along that side,
+        /// offsetting outward by <paramref name="padding"/>.
+        /// </summary>
         private static Vector3 GetOffScreenPosition(Camera camera, float padding, System.Random rng)
         {
             camera = camera != null ? camera : Camera.main;
