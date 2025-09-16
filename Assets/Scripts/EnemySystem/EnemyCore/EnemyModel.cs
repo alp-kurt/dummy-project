@@ -22,7 +22,7 @@ namespace Scripts
         private IEnemyHealthModel _health;
         private bool _deadTransitioned;
 
-        private const float k_OffscreenDespawnSeconds = 0.5f;
+        private const float k_OffscreenDespawnSeconds = 1.5f;
         private const float k_DeathDespawnSeconds = 1.0f;
 
         // Public props
