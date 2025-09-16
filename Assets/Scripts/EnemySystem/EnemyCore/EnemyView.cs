@@ -30,6 +30,9 @@ namespace Scripts
         private readonly Subject<bool> _visibilityChanged = new();
         public IObservable<bool> VisibilityChanged => _visibilityChanged;
 
+        private bool _isVisible;
+        public bool IsVisible => _isVisible;
+
         public EnemyHitFxView HitFxView => _hitFxView;
         public EnemyHealthBarView HealthBarView => _healthBarView;
 
@@ -60,8 +63,17 @@ namespace Scripts
             if (_rigidbody2D != null) _rigidbody2D.velocity = Vector2.zero;
         }
 
-        private void OnBecameVisible() => _visibilityChanged.OnNext(true);
-        private void OnBecameInvisible() => _visibilityChanged.OnNext(false);
+        private void OnBecameVisible()
+        {
+            _isVisible = true;
+            _visibilityChanged.OnNext(true);
+        }
+
+        private void OnBecameInvisible()
+        {
+            _isVisible = false;
+            _visibilityChanged.OnNext(false);
+        }
 
         public void SetActive(bool value) => gameObject.SetActive(value);
 
@@ -78,6 +90,8 @@ namespace Scripts
             if (!_root) _root = transform;
             EnsureModulesCached();
         }
+
+
 
 #if UNITY_EDITOR
         private void OnValidate()

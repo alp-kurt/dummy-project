@@ -122,19 +122,27 @@ namespace Scripts
             if (_activeEnemiesRoot == null) return null;
 
             var pos = GetPosition();
-            Transform closest = null;
+            EnemyView closestView = null;
             float bestSq = float.PositiveInfinity;
 
-            for (int i = 0, c = _activeEnemiesRoot.childCount; i < c; i++)
+            // Only consider EnemyView components; cheap and precise
+            var views = _activeEnemiesRoot.GetComponentsInChildren<EnemyView>(includeInactive: false);
+            foreach (var v in views)
             {
-                var child = _activeEnemiesRoot.GetChild(i);
-                if (!child.gameObject.activeInHierarchy) continue;
+                if (!v || !v.gameObject.activeInHierarchy) continue;
 
-                // Optional: ensure it's a valid target (component/tag/layer)
-                var sq = (child.position - pos).sqrMagnitude;
-                if (sq < bestSq) { bestSq = sq; closest = child; }
+                // Only pick enemies whose state is NOT OutOfScreen (i.e., currently visible)
+                if (!v.IsVisible) continue;
+
+                float d2 = (v.Position - pos).sqrMagnitude;
+                if (d2 < bestSq)
+                {
+                    bestSq = d2;
+                    closestView = v;
+                }
             }
-            return closest;
+
+            return closestView ? closestView.transform : null;
         }
     }
 }
