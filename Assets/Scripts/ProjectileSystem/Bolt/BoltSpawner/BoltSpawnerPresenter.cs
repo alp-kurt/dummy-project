@@ -52,17 +52,30 @@ namespace Scripts
             Vector3 origin = _playerPos.Position;
             int count = _model.BoltsPerCast;
 
+            const float kStepDeg = 15f; // fixed spacing between bolts
+
+            // Random base direction ONCE per cast
+            Vector2 baseDir = Random.insideUnitCircle;
+            if (baseDir.sqrMagnitude < 1e-6f) baseDir = Vector2.right; else baseDir.Normalize();
+
+            // Center the spread around the baseDir (e.g., for 3 bolts → -15°, 0°, +15°)
+            float startDeg = -kStepDeg * (count - 1) * 0.5f;
+
             for (int i = 0; i < count; i++)
             {
-                Vector2 rand = Random.insideUnitCircle;
-                if (rand.sqrMagnitude < 1e-6f) rand = Vector2.right; else rand.Normalize();
-                Vector3 dir = new Vector3(rand.x, rand.y, 0f);
-
+                float offsetDeg = startDeg + i * kStepDeg;
+                Vector2 dir = Rotate(baseDir, offsetDeg);
                 _factory.Create(origin, dir, _boltCfg);
             }
+        }
 
-            if (_cfg.logCasts)
-                Debug.Log($"[BoltSpawner] Cast {count} bolt(s) at t={Time.time:0.00}s, interval={_model.IntervalSeconds:0.00}");
+        // Helper
+        private static Vector2 Rotate(Vector2 v, float degrees)
+        {
+            float r = degrees * Mathf.Deg2Rad;
+            float cs = Mathf.Cos(r);
+            float sn = Mathf.Sin(r);
+            return new Vector2(v.x * cs - v.y * sn, v.x * sn + v.y * cs).normalized;
         }
 
         public void Dispose() { }
