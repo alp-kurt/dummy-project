@@ -15,7 +15,6 @@ namespace Scripts
     {
         private readonly IBoltSpawnerModel _model;
         private readonly IBoltFactory _factory;
-        private readonly IPlayerPosition _playerPos;
         private readonly BoltSpawnerConfig _cfg; // boltsPerCast, secondsBetweenCasts, logCasts, etc.
         private readonly BoltConfig _boltCfg;    // projectile stats
 
@@ -30,13 +29,11 @@ namespace Scripts
         public BoltSpawnerPresenter(
             IBoltSpawnerModel model,
             IBoltFactory factory,
-            IPlayerPosition playerPos,
             BoltSpawnerConfig cfg,
             BoltConfig boltCfg)
         {
             _model = model;
             _factory = factory;
-            _playerPos = playerPos;
             _cfg = cfg;
             _boltCfg = boltCfg;
         }
@@ -70,7 +67,6 @@ namespace Scripts
         /// </summary>
         private void Cast()
         {
-            Vector3 origin = _playerPos.Position;
             int count = _model.BoltsPerCast;
 
             const float kStepDeg = 15f; // fixed spacing between neighboring bolts
@@ -86,7 +82,6 @@ namespace Scripts
             {
                 float offsetDeg = startDeg + i * kStepDeg;
                 Vector2 dir = Rotate(baseDir, offsetDeg);
-                _factory.Create(origin, dir, _boltCfg);
             }
         }
 

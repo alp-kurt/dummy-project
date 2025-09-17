@@ -1,3 +1,4 @@
+// Assets/Scripts/Player/PlayerInstaller.cs
 using UnityEngine;
 using Zenject;
 
@@ -11,65 +12,49 @@ namespace Scripts
 
         [Header("Required scene references")]
         [SerializeField] private JoystickView _joystickView;
-        [SerializeField] private PlayerHealthView _playerHealthView;
 
         [Header("Camera (optional override)")]
         [Tooltip("If left null, Camera will be resolved via FromComponentInHierarchy().")]
-        [SerializeField] private Camera camera;
+        [SerializeField] private Camera _camera;
 
         public override void InstallBindings()
         {
             // ---- Validation ----
             if (!_joystickView) throw new System.Exception($"{nameof(PlayerInstaller)}: JoystickView is not assigned.");
-            if (!_playerHealthView) throw new System.Exception($"{nameof(PlayerInstaller)}: PlayerHealthView is not assigned.");
             if (_playerMaxHealth < 1f || _playerMoveSpeed < 0f)
                 Debug.LogWarning($"[{nameof(PlayerInstaller)}] Clamping invalid config: MaxHealth={_playerMaxHealth}, MoveSpeed={_playerMoveSpeed}", this);
 
             // Views
             Container.BindInstance(_joystickView);
-            Container.BindInstance(_playerHealthView);
 
             Container.Bind<PlayerView>()
-                    .FromComponentInHierarchy()
-                    .AsSingle();
+                .FromComponentInHierarchy()
+                .AsSingle();
 
-            Container.Bind<IPlayerPosition>()
-                    .To<PlayerPositionAdapter>()
-                    .AsSingle();
-
-            // Player core MVP (inject speed)
+            // Player core (speed + max health)
             Container.Bind<IPlayerModel>()
-                     .To<PlayerModel>()
-                     .AsSingle()
-                     .WithArguments(Mathf.Max(0f, _playerMoveSpeed));
+                .To<PlayerModel>()
+                .AsSingle()
+                .WithArguments(Mathf.Max(0f, _playerMoveSpeed), Mathf.Max(1f, _playerMaxHealth));
 
             Container.BindInterfacesTo<PlayerPresenter>()
-                    .AsSingle()
-                    .NonLazy();
+                .AsSingle()
+                .NonLazy();
 
-            // Player health MVP
-            Container.BindInterfacesAndSelfTo<PlayerHealthModel>()
-                     .AsSingle()
-                     .WithArguments(Mathf.Max(1f, _playerMaxHealth));
-
-            Container.BindInterfacesTo<PlayerHealthPresenter>()
-                     .AsSingle()
-                     .NonLazy();
-
-            // Camera (prefer explicit instance, else fallback to hierarchy)
-            if (camera)
+            // Camera
+            if (_camera)
             {
                 Container.Bind<Camera>()
-                         .FromInstance(camera)
-                         .AsSingle()
-                         .IfNotBound();
+                    .FromInstance(_camera)
+                    .AsSingle()
+                    .IfNotBound();
             }
             else
             {
                 Container.Bind<Camera>()
-                         .FromComponentInHierarchy()
-                         .AsSingle()
-                         .IfNotBound();
+                    .FromComponentInHierarchy()
+                    .AsSingle()
+                    .IfNotBound();
             }
         }
 
@@ -82,10 +67,7 @@ namespace Scripts
             if (!_joystickView)
                 Debug.LogWarning($"[{nameof(PlayerInstaller)}] JoystickView is not assigned.", this);
 
-            if (!_playerHealthView)
-                Debug.LogWarning($"[{nameof(PlayerInstaller)}] PlayerHealthView is not assigned.", this);
-
-            if (!camera)
+            if (!_camera)
                 Debug.Log($"[{nameof(PlayerInstaller)}] Camera not set; will resolve via hierarchy.", this);
         }
 #endif
