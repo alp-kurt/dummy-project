@@ -5,7 +5,6 @@ namespace Scripts
     /// <summary>
     /// Visual for the Bolt projectile.
     /// Inherits pooled behavior and shared projectile utilities from ProjectileView.
-    /// Keep this lean; all behavior belongs in the presenter/model.
     /// </summary>
     public sealed class BoltView : ProjectileView
     {

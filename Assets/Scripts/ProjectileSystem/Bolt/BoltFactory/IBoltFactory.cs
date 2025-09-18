@@ -4,6 +4,6 @@ namespace Scripts
 {
     public interface IBoltFactory
     {
-        IBoltHandle Create(Vector3 position, Vector3 directionNormalized, ProjectileConfigBase config);
+        IBoltHandle Create(Vector3 position, Vector3 directionNormalized, BoltConfig config);
     }
 }

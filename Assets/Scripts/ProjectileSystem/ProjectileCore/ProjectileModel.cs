@@ -7,43 +7,33 @@ namespace Scripts
     {
         private readonly ReactiveProperty<bool> _isActive = new(false);
 
-        private string _name;
-        private Sprite _sprite;
-        private ProjectileDamage _damage;
-        private ProjectileSpeed _speed;
+        private readonly string _name;
+        private readonly Sprite _sprite;
+        private int _damage;
+        private float _speed;
 
         public string Name => _name;
         public Sprite Sprite => _sprite;
-        public int Damage => _damage?.Value ?? 0;
-        public float Speed => _speed?.Value ?? 0f;
+        public int Damage => _damage;
+        public float Speed => _speed;
 
         public bool IsActive => _isActive.Value;
         public IReadOnlyReactiveProperty<bool> IsActiveRx => _isActive;
 
-        protected ProjectileModel(string name, Sprite sprite, ProjectileDamage damage, ProjectileSpeed speed)
+        protected ProjectileModel(string name, Sprite sprite, int damage, float speed)
         {
-            _name = name;
-            _sprite = sprite;
-            _damage = damage;
-            _speed = speed;
+            _name = name; _sprite = sprite; _damage = Mathf.Max(0, damage); _speed = Mathf.Max(0f, speed);
         }
 
-        public void Activate()
+        public void Activate() { _isActive.Value = true; OnActivated(); }
+        public void Deactivate() { _isActive.Value = false; OnDeactivated(); }
+
+        public void SetStats(int damage, float speed)
         {
-            _isActive.Value = true;
-            OnActivated();
+            _damage = Mathf.Max(0, damage);
+            _speed = Mathf.Max(0f, speed);
         }
 
-        public void Deactivate()
-        {
-            _isActive.Value = false;
-            OnDeactivated();
-        }
-
-        public void SetDamage(ProjectileDamage damage) => _damage = damage;
-        public void SetSpeed(ProjectileSpeed speed) => _speed = speed;
-
-        // Hooks for derived models (e.g., clear counters on reuse later)
         protected virtual void OnActivated() { }
         protected virtual void OnDeactivated() { }
     }

@@ -4,7 +4,6 @@ namespace Scripts
 {
     /// <summary>
     /// Typed pool that manages parenting only. Active/inactive is driven by PooledView hooks.
-    /// Mirrors your EnemyViewPool pattern.
     /// </summary>
     public sealed class BoltViewPool : ObjectPool<BoltView>
     {

@@ -3,76 +3,58 @@ using Zenject;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Central installer for Bolt system:
-    /// - Pools, renter, presenter factory, IBoltFactory (existing)
-    /// - Ricochet tunables
-    /// - Spawner MVP (config → model, presenter tick; spawns from IPlayerPosition)
-    /// </summary>
     public sealed class BoltSystemInstaller : MonoInstaller
     {
         [Header("Prefabs & Parents")]
-        [SerializeField] private BoltView boltPrefab;
-        [SerializeField] private Transform pooledParent;
-        [SerializeField] private Transform activeParent;
+        [SerializeField] private BoltView _boltPrefab;
+        [SerializeField] private Transform _pooledParent;
+        [SerializeField] private Transform _activeParent;
 
         [Header("Pool Size")]
-        [SerializeField, Min(1)] private int min = 8;
-        [SerializeField, Min(1)] private int max = 32;
+        [SerializeField, Min(1)] private int _min = 8;
+        [SerializeField, Min(1)] private int _max = 32;
 
         [Header("Ricochet Config")]
-        [SerializeField, Min(0f)] private float edgePaddingWorld = 0.25f;
-        [SerializeField, Min(0f)] private float ricochetCooldown = 0.08f;
+        [SerializeField, Min(0f)] private float _edgePaddingWorld = 0.25f;
+        [SerializeField, Min(0f)] private float _ricochetCooldown = 0.08f;
 
-        [Tooltip("Designer-tunable: bolts per cast & seconds between casts.")]
-        [SerializeField] private BoltSpawnerConfig spawnerConfig;
-
-        [Tooltip("Existing projectile stats SO used by bolts created by the spawner.")]
-        [SerializeField] private BoltConfig boltConfig;
+        [Header("Bolt Config (REQUIRED)")]
+        [SerializeField] private BoltConfig _boltConfig;
 
         public override void InstallBindings()
         {
-            // ===== Fail-fast validations =====
-            if (!boltPrefab) throw new System.NullReferenceException("[BoltSystemInstaller] Bolt prefab is not assigned.");
-            if (!pooledParent) throw new System.NullReferenceException("[BoltSystemInstaller] Pooled parent is not assigned.");
-            if (!activeParent) throw new System.NullReferenceException("[BoltSystemInstaller] Active parent is not assigned.");
+            // Validation
+            if (!_boltPrefab) throw new System.NullReferenceException("[BoltSystemInstaller] Bolt prefab is not assigned.");
+            if (!_pooledParent) throw new System.NullReferenceException("[BoltSystemInstaller] Pooled parent is not assigned.");
+            if (!_activeParent) throw new System.NullReferenceException("[BoltSystemInstaller] Active parent is not assigned.");
+            if (_max < _min) throw new System.Exception($"[BoltSystemInstaller] max ({_max}) < min ({_min}).");
+            if (!_boltConfig) throw new System.NullReferenceException("[BoltSystemInstaller] BoltConfig is not assigned.");
 
-            if (!spawnerConfig) throw new System.NullReferenceException("[BoltSystemInstaller] Spawner Config is not assigned.");
-            if (!boltConfig) throw new System.NullReferenceException("[BoltSystemInstaller] BoltConfig is not assigned.");
-
-            // ===== Core factory & pooling =====
-            // IObjectFactory<BoltView> -> PrefabFactory<BoltView> (prefab + pooledParent)
+            // Factory + Pool
             Container.Bind<IObjectFactory<BoltView>>()
-                .To<PrefabFactory<BoltView>>()
-                .AsSingle()
-                .WithArguments(boltPrefab, pooledParent);
+                     .To<PrefabFactory<BoltView>>()
+                     .AsSingle()
+                     .WithArguments(_boltPrefab, _pooledParent);
 
-            // IObjectPool<BoltView> -> BoltViewPool (min, max, pooledParent, activeParent)
             Container.Bind<IObjectPool<BoltView>>()
-                .To<BoltViewPool>()
-                .AsSingle()
-                .WithArguments(min, max, pooledParent, activeParent);
+                     .To<BoltViewPool>()
+                     .AsSingle()
+                     .WithArguments(_min, _max, _pooledParent, _activeParent);
 
-            // Renter, PresenterFactory, Factory
             Container.Bind<IBoltViewRenter>().To<BoltViewRenter>().AsSingle();
             Container.Bind<IBoltPresenterFactory>().To<BoltPresenterFactory>().AsSingle();
             Container.Bind<IBoltFactory>().To<BoltFactory>().AsSingle();
 
-            // Ricochet tunables
-            Container.Bind<float>().WithId("BoltEdgePaddingWorld").FromInstance(edgePaddingWorld).IfNotBound();
-            Container.Bind<float>().WithId("BoltRicochetCooldown").FromInstance(ricochetCooldown).IfNotBound();
+            // Tunables for presenter factory
+            Container.Bind<float>().WithId("BoltEdgePaddingWorld").FromInstance(_edgePaddingWorld).IfNotBound();
+            Container.Bind<float>().WithId("BoltRicochetCooldown").FromInstance(_ricochetCooldown).IfNotBound();
 
-            // ===== Spawner MVP =====
-            Container.BindInstance(spawnerConfig);
-            Container.BindInstance(boltConfig);
+            // Bind the goddamn BoltConfig
+            Container.Bind<BoltConfig>().FromInstance(_boltConfig).AsSingle();
 
-            // Model pulls from the config directly
-            Container.Bind<IBoltSpawnerModel>()
-                     .To<BoltSpawnerModel>()
-                     .AsSingle();
-
-            // Presenter depends on IBoltSpawnerModel, IBoltFactory, IPlayerPosition, BoltSpawnerConfig, BoltConfig
-            Container.BindInterfacesTo<BoltSpawnerPresenter>()
+            // Initialize in-scene BoltSpawner (MonoBehaviour)
+            Container.BindInterfacesAndSelfTo<BoltSpawner>()
+                     .FromComponentInHierarchy()
                      .AsSingle()
                      .NonLazy();
         }
@@ -80,15 +62,13 @@ namespace Scripts
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (min < 1) min = 1;
-            if (max < min) max = min;
+            if (_min < 1) _min = 1;
+            if (_max < _min) _max = _min;
 
-            if (!boltPrefab) Debug.LogWarning("[BoltSystemInstaller] Bolt prefab missing.", this);
-            if (!pooledParent) Debug.LogWarning("[BoltSystemInstaller] Pooled parent missing.", this);
-            if (!activeParent) Debug.LogWarning("[BoltSystemInstaller] Active parent missing.", this);
-
-            if (!spawnerConfig) Debug.LogWarning("[BoltSystemInstaller] Spawner Config missing.", this);
-            if (!boltConfig) Debug.LogWarning("[BoltSystemInstaller] BoltConfig missing.", this);
+            if (!_boltPrefab) Debug.LogWarning("[BoltSystemInstaller] Bolt prefab missing.", this);
+            if (!_pooledParent) Debug.LogWarning("[BoltSystemInstaller] Pooled parent missing.", this);
+            if (!_activeParent) Debug.LogWarning("[BoltSystemInstaller] Active parent missing.", this);
+            if (!_boltConfig) Debug.LogWarning("[BoltSystemInstaller] BoltConfig not assigned.", this);
         }
 #endif
     }

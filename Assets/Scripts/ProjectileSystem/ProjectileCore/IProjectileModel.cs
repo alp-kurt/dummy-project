@@ -7,7 +7,8 @@ namespace Scripts
     {
         string Name { get; }
         Sprite Sprite { get; }
-        float Speed { get; }
+        float Speed { get; } 
+        int Damage { get; } 
 
         bool IsActive { get; }
         IReadOnlyReactiveProperty<bool> IsActiveRx { get; }
@@ -15,7 +16,6 @@ namespace Scripts
         void Activate();
         void Deactivate();
 
-        void SetDamage(ProjectileDamage damage);
-        void SetSpeed(ProjectileSpeed speed);
+        void SetStats(int damage, float speed);
     }
 }

@@ -3,18 +3,11 @@ using Zenject;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Creates a BoltPresenter + BoltModel pair and wires scene deps (Camera, ActiveEnemiesRoot).
-    /// Expects:
-    ///  - Camera bound once (PlayerInstaller)
-    ///  - Transform with Id "ActiveEnemiesRoot" bound once (EnemySystemInstaller)
-    ///  - Optional float Ids "BoltEdgePaddingWorld" / "BoltRicochetCooldown" (BoltSystemInstaller)
-    /// </summary>
     public sealed class BoltPresenterFactory : IBoltPresenterFactory
     {
         private readonly DiContainer _container;
-        private readonly Camera _camera; // from PlayerInstaller
-        private readonly Transform _activeEnemiesRoot; // from EnemySystemInstaller
+        private readonly Camera _camera;
+        private readonly Transform _activeEnemiesRoot;
         private readonly float _edgePaddingWorld;
         private readonly float _ricochetCooldown;
 
@@ -32,36 +25,26 @@ namespace Scripts
             _ricochetCooldown = ricochetCooldown;
         }
 
-        public BoltPresenter Create(BoltView view, ProjectileConfigBase config)
+        public BoltPresenter Create(BoltView view, BoltConfig config)
         {
-            // Build model from config
-            var damage = new ProjectileDamage(config.BaseDamage);
-            var speed = new ProjectileSpeed(config.BaseSpeed);
+            // Pull stats directly from BoltConfig
+            string name = config ? config.DisplayName : "Bolt";
+            Sprite sprite = config ? config.Sprite : null;
+            int damage = config ? config.Damage : 1;
+            float speed = config ? config.Speed : 12f;
+            float life = config ? config.LifetimeSeconds : 6f;
 
-            var boltCfg = (BoltConfig)config;
-            var model = _container.Instantiate<BoltModel>(
-                new object[]
-                {
-                    config.DisplayName,
-                    config.Sprite,
-                    damage,
-                    speed,
-                    boltCfg.LifetimeSeconds
-                }
-            );
+            var model = _container.Instantiate<BoltModel>(new object[] { name, sprite, damage, speed, life });
 
-            // Build presenter with required scene deps and tunables
-            var presenter = _container.Instantiate<BoltPresenter>(
-                new object[]
-                {
-                    (IBoltModel)model,
-                    (ProjectileView)view,
-                    _camera,
-                    _activeEnemiesRoot,
-                    _edgePaddingWorld,
-                    _ricochetCooldown
-                }
-            );
+            var presenter = _container.Instantiate<BoltPresenter>(new object[]
+            {
+                (IBoltModel)model,
+                view,
+                _camera,
+                _activeEnemiesRoot,
+                _edgePaddingWorld,
+                _ricochetCooldown
+            });
 
             presenter.Initialize();
             return presenter;
