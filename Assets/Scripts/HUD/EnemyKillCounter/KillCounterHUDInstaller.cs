@@ -5,19 +5,28 @@ namespace Scripts
 {
     public sealed class KillCounterHUDInstaller : MonoInstaller
     {
-        [Header("Kill Counter (optional override)")]
+        [Header("Kill Counter (optional)")]
         [Tooltip("If left null, the view will be resolved via FromComponentInHierarchy().")]
         [SerializeField] private EnemyKillCounterView _killCounterView;
 
         public override void InstallBindings()
         {
+            // View
             if (_killCounterView)
-                Container.BindInstance(_killCounterView);
+                Container.Bind<EnemyKillCounterView>().FromInstance(_killCounterView).AsSingle();
             else
                 Container.Bind<EnemyKillCounterView>().FromComponentInHierarchy().AsSingle();
 
-            Container.Bind<IEnemyKillCounterModel>().To<EnemyKillCounterModel>().AsSingle();
-            Container.BindInterfacesTo<EnemyKillCounterPresenter>().AsSingle().NonLazy();
+            // Model (single source of truth)
+            Container.Bind<IEnemyKillCounterModel>()
+                     .To<EnemyKillCounterModel>()
+                     .AsSingle()
+                     .IfNotBound();
+
+            // Presenter (IInitializable -> Initialize() will be called)
+            Container.BindInterfacesTo<EnemyKillCounterPresenter>()
+                     .AsSingle()
+                     .NonLazy();
         }
 
 #if UNITY_EDITOR
