@@ -29,7 +29,6 @@ namespace Scripts
 
         public void Release()
         {
-            // Ensures visual/gameplay teardown before returning to pool
             Despawn();
             _presenter.Dispose();
             _renter.Return(_view);

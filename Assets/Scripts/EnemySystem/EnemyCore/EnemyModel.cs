@@ -4,106 +4,94 @@ using UnityEngine;
 
 namespace Scripts
 {
-    public sealed class EnemyModel : IEnemyModel
+    /// <summary>
+    /// Pure data model: movement flags, reactive health, and signals. No FSM/context.
+    /// </summary>
+    public sealed class EnemyModel : IEnemyModel, IDamageable
     {
-        // Stats
+        // Stats / movement
         private float _moveSpeed;
         private readonly ReactiveProperty<bool> _canMove = new(false);
         private int _damage;
 
-        // Events
+        // Health
+        private int _maxHealth;
+        private readonly ReactiveProperty<int> _currentHealth = new(1);
+        private readonly Subject<int> _damaged = new();
+        private readonly Subject<Unit> _died = new();
+        private bool _isDead;
+
+        // Signals
         private readonly Subject<Unit> _returned = new();
 
-        // FSM plumbing
-        private EnemyContext _ctx;
-        private EnemyStateMachine _fsm;
+        // Optional screen flag (set by presenter)
+        internal bool IsOnScreenInternal { get; private set; }
+        internal void SetCanMoveInternal(bool v) => _canMove.Value = v;
+        internal void SwitchToPooledInternal() => _returned.OnNext(Unit.Default);
+        public void SetCanMove(bool value) => _canMove.Value = value;
+        public void NotifyReturnedToPool() => _returned.OnNext(Unit.Default);
 
-        // Linked health
-        private IEnemyHealthModel _health;
-        private bool _deadTransitioned;
-
-        private const float k_OffscreenDespawnSeconds = 1.5f;
-        private const float k_DeathDespawnSeconds = 1.0f;
-
-        // Public props
+        // Public
         public float MoveSpeed => _moveSpeed;
         public int Damage => _damage;
         public IReadOnlyReactiveProperty<bool> CanMove => _canMove;
+
+        public int MaxHealth => _maxHealth;
+        public IReadOnlyReactiveProperty<int> CurrentHealth => _currentHealth;
+        public IObservable<int> Damaged => _damaged;
+        public IObservable<Unit> Died => _died;
+
         public IObservable<Unit> ReturnedToPool => _returned;
-
-        // Internal for context/states
-        internal bool IsOnScreenInternal { get; private set; }
-        internal EnemyStateMachine StateMachineInternal => _fsm;
-        internal void SetCanMoveInternal(bool v) => _canMove.Value = v;
-
-        private IDisposable _healthDiedSub;
-
-        // Called by Dead state
-        internal void EmitDiedInternal()
-        {
-            if (_deadTransitioned) return;
-            _deadTransitioned = true;
-        }
-
-        internal void SwitchToPooledInternal() => _returned.OnNext(Unit.Default);
 
         public void Initialize(EnemyStats stats)
         {
             _moveSpeed = Mathf.Max(0f, stats.MovementSpeed);
             _damage = Mathf.Max(0, stats.Damage);
+            _maxHealth = Mathf.Max(1, stats.MaxHealth);
 
-            // UseUnscaledTime defaults to false; flip via the EnemyContext ctor overload if desired.
-            _ctx = new EnemyContext(this, k_OffscreenDespawnSeconds, k_DeathDespawnSeconds);
-            _fsm = new EnemyStateMachine(_ctx);
-
-            IsOnScreenInternal = false;
+            _currentHealth.Value = _maxHealth;
+            _isDead = false;
             _canMove.Value = false;
-            _deadTransitioned = false;
-
-            // Allocation-free start
-            _fsm.Start(EnemyState_Pooled.Instance);
-        }
-
-        public void SetHealth(IEnemyHealthModel health)
-        {
-            _health = health;
-
-            _healthDiedSub?.Dispose();
-            _healthDiedSub = _health.Died.Subscribe(_ =>
-            {
-                if (!_deadTransitioned)
-                {
-                    _deadTransitioned = true;
-                    _fsm.Transition(EnemyState_Dead.Instance);
-                }
-            });
+            IsOnScreenInternal = false;
         }
 
         public void ResetForSpawn()
         {
-            _deadTransitioned = false;
-            IsOnScreenInternal = false;
+            _isDead = false;
+            _currentHealth.Value = _maxHealth;
             _canMove.Value = true;
-
-            // Safety: cancel any timers from a previous lifetime
-            _ctx?.CancelAllTimers();
-
-            _health?.ResetFull();
-
-            _fsm.Transition(EnemyState_OutOfScreen.Instance);
+            IsOnScreenInternal = false;
         }
 
-        public void Tick(float deltaTime) => _fsm.Update(Mathf.Max(0f, deltaTime));
+        // No-op now; presenter owns per-frame work
+        public void Tick(float deltaTime) { }
 
         public void SetOnScreen(bool isOnScreen)
         {
             IsOnScreenInternal = isOnScreen;
+            // No transitions here; presenter handles state switches.
+        }
 
-            var cur = _fsm.Current;
-            if (isOnScreen && cur is EnemyState_OutOfScreen)
-                _fsm.Transition(EnemyState_Active.Instance);   
-            else if (!isOnScreen && cur is EnemyState_Active)
-                _fsm.Transition(EnemyState_OutOfScreen.Instance); 
+        // Damage intake
+        public void ReceiveDamage(int amount)
+        {
+            if (_isDead) return;
+            var dmg = Mathf.Max(0, amount);
+            if (dmg == 0) return;
+
+            var next = Mathf.Max(0, _currentHealth.Value - dmg);
+            _currentHealth.Value = next;
+            _damaged.OnNext(dmg);
+
+            if (next <= 0) Die();
+        }
+
+        private void Die()
+        {
+            if (_isDead) return;
+            _isDead = true;
+            _currentHealth.Value = 0;
+            _died.OnNext(Unit.Default);
         }
     }
 }

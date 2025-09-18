@@ -3,44 +3,35 @@ using Zenject;
 namespace Scripts
 {
     /// <summary>
-    /// Builds a fully wired EnemyPresenter (+ model/health) for a rented EnemyView using the given stats.
-    /// Globals (PlayerView, IEnemyDeathStream) are injected once into this factory.
+    /// Builds a fully wired EnemyPresenter for a rented EnemyView using the given stats.
+    /// No EnemyHealthModel or DamageableAdapter — presenter handles wiring.
     /// </summary>
     public sealed class EnemyPresenterFactory : IEnemyPresenterFactory
     {
-        private readonly DiContainer m_container;
-        private readonly PlayerView m_player;
-        private readonly IEnemyDeathStream _;
+        private readonly DiContainer _container;
+        private readonly PlayerView _player;
+        private readonly IEnemyDeathStream _deathBus;
 
-        public EnemyPresenterFactory(
-            DiContainer container,
-            PlayerView player,
-            IEnemyDeathStream deathBus)
+        public EnemyPresenterFactory(DiContainer container, PlayerView player, IEnemyDeathStream deathBus)
         {
-            m_container = container;
-            m_player = player;
-            _ = deathBus;
+            _container = container;
+            _player = player;
+            _deathBus = deathBus;
         }
 
         public EnemyPresenter Create(EnemyView view, EnemyStats stats)
         {
-            // Per-enemy instances
-            var model = m_container.Instantiate<EnemyModel>();
-            var health = m_container.Instantiate<EnemyHealthModel>();
+            // Per-enemy model
+            var model = _container.Instantiate<EnemyModel>();
 
-            // Manual wiring for Unity component adapter (consistent with your hybrid DI style)
-            var dmgAdapter = view.GetComponent<EnemyDamageableAdapter>();
-            dmgAdapter?.Initialize(health);
-
-            // Construct the presenter with explicit dependencies (no Resolve calls here)
-            var presenter = m_container.Instantiate<EnemyPresenter>(new object[]
+            // Presenter wires: model + player + view + stats + death bus
+            var presenter = _container.Instantiate<EnemyPresenter>(new object[]
             {
                 model,
-                health,
-                m_player,
+                _player,
                 view,
                 stats,
-                _
+                _deathBus
             });
 
             return presenter;

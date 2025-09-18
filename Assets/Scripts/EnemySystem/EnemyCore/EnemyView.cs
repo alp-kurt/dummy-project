@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Scripts
 {
     [DisallowMultipleComponent]
-    public sealed class EnemyView : PooledView
+    public sealed class EnemyView : PooledView, IDamageable
     {
         [Header("Core Refs")]
         [Tooltip("Primary renderer for this enemy (can be on a child).")]
@@ -22,9 +22,6 @@ namespace Scripts
 
         [Header("Optional Modules")]
         [Tooltip("Optional. Found in children if not assigned.")]
-        [SerializeField] private EnemyHitFxView _hitFxView;
-
-        [Tooltip("Optional. Found in children if not assigned.")]
         [SerializeField] private EnemyHealthBarView _healthBarView;
 
         private readonly Subject<bool> _visibilityChanged = new();
@@ -33,16 +30,24 @@ namespace Scripts
         private bool _isVisible;
         public bool IsVisible => _isVisible;
 
-        public EnemyHitFxView HitFxView => _hitFxView;
         public EnemyHealthBarView HealthBarView => _healthBarView;
 
-        /// <summary>How much damage this enemy deals to the player on contact (runtime cache of EnemyStats.Damage).</summary>
         public int ContactDamage => _contactDamage;
 
-        /// <summary>Presenter sets this from EnemyStats.Damage at spawn.</summary>
         public void SetContactDamage(int value) => _contactDamage = Mathf.Max(0, value);
 
         public Vector3 Position => (_root != null ? _root : transform).position;
+
+        // Model attachment & damage forwarding
+        private IEnemyModel _model;
+
+        /// <summary>Presenter calls once per spawn.</summary>
+        public void AttachModel(IEnemyModel model) => _model = model;
+
+        /// <summary>Expose per-enemy model so child views (e.g., health bar) can bind reactively.</summary>
+        public IEnemyModel Model => _model;   // <-- added
+
+        public void ReceiveDamage(int amount) => _model?.ReceiveDamage(amount);
 
         public void SetVisual(Sprite sprite, float scale = 1f)
         {
@@ -79,7 +84,6 @@ namespace Scripts
 
         public void EnsureModulesCached()
         {
-            if (!_hitFxView) _hitFxView = GetComponentInChildren<EnemyHitFxView>(true);
             if (!_healthBarView) _healthBarView = GetComponentInChildren<EnemyHealthBarView>(true);
         }
 
@@ -90,8 +94,6 @@ namespace Scripts
             if (!_root) _root = transform;
             EnsureModulesCached();
         }
-
-
 
 #if UNITY_EDITOR
         private void OnValidate()

@@ -2,157 +2,169 @@ using System;
 using UniRx;
 using UnityEngine;
 using Zenject;
+using DG.Tweening;
 
 namespace Scripts
 {
-    /// <summary>
-    /// Wires Enemy model/health to view and player; owns FixedUpdate driving of movement
-    /// and forwards lifecycle events (death → bus, pooling signals, etc.).
-    /// </summary>
     public sealed class EnemyPresenter : IDisposable
     {
+        private enum State { Pooled, Active, OutOfScreen, Dead }
+
         private readonly IEnemyModel _model;
-        private readonly IEnemyHealthModel _health;
         private readonly EnemyView _view;
         private readonly Transform _player;
         private readonly EnemyStats _stats;
         private readonly IEnemyDeathStream _deathBus;
 
-        private readonly CompositeDisposable _disposables = new();
+        private readonly CompositeDisposable _cd = new();
+        private CompositeDisposable _stateScope = new();
 
-        // Modular view parts (optional per prefab)
-        private EnemyHitFxView _hitFx;
-        private EnemyHealthBarView _healthBar;
+        private State _state = State.Pooled;
+        private bool _isOnScreen;
 
-        /// <summary>
-        /// DI entry point. Initializes model & health, applies visuals, and binds reactive streams.
-        /// Player is optional; if missing, movement falls back to zero velocity.
-        /// </summary>
         [Inject]
         public EnemyPresenter(
             IEnemyModel model,
-            IEnemyHealthModel health,
             PlayerView playerView,
             EnemyView view,
             EnemyStats stats,
             IEnemyDeathStream deathBus)
         {
             _model = model;
-            _health = health;
             _view = view;
             _stats = stats;
-            _player = playerView != null ? playerView.transform : null;
+            _player = playerView ? playerView.transform : null;
             _deathBus = deathBus;
 
-            // ----- Initialize model & visuals -----
-            _health.Initialize(_stats.MaxHealth);
+            // init model + visuals
             _model.Initialize(_stats);
-            _model.SetHealth(_health);
-
             _view.SetVisual(_stats.Sprite, _stats.SpriteScale);
             _view.SetContactDamage(_stats.Damage);
 
-            // Cache optional modules from the view/prefab
-            _view.EnsureModulesCached();
-            _hitFx = _view.HitFxView;
-            _healthBar = _view.HealthBarView;
+            // let projectiles damage the model via the view
+            _view.AttachModel(_model);
 
-            // ----- Bind streams -----
+            // subscribe hit fx
+            _model.Damaged.Subscribe(_ =>
+            {
+                var t = _view.GetComponentInChildren<SpriteRenderer>(true)?.transform ?? _view.transform;
+                t.DOKill(false);
+                t.DOPunchScale(new Vector3(-0.15f, -0.15f, 0f), 0.12f, 6, 0f).SetUpdate(true);
+            }).AddTo(_view);
 
-            // Health -> UI bar (only when value actually changes).
-            _health.CurrentHealth01
-                   .DistinctUntilChanged()
-                   .Subscribe(v => _healthBar?.SetHealth01(v))
-                   .AddTo(_disposables);
-
-            // Health damage -> On-hit FX (squash/stretch, etc.).
-            _health.Damaged
-                   .Subscribe(_ => _hitFx?.PlayOnHit())
-                   .AddTo(_disposables);
-
-            // Renderer visibility -> model screen-state (drives FSM transitions).
+            // view visibility -> keep a simple flag and transition between Active/OutOfScreen
             _view.VisibilityChanged
                  .DistinctUntilChanged()
-                 .Subscribe(_model.SetOnScreen)
-                 .AddTo(_disposables);
+                 .Subscribe(on =>
+                 {
+                     _isOnScreen = on;
+                     if (_state == State.Active && !on) Transition(State.OutOfScreen);
+                     else if (_state == State.OutOfScreen && on) Transition(State.Active);
+                     // ignore in Pooled/Dead
+                 })
+                 .AddTo(_cd);
 
-            // Death -> publish to bus and ensure motion stops.
-            _health.Died
-                   .Subscribe(_ =>
-                   {
-                       _deathBus.Publish();
-                       _view.Stop();
-                   })
-                   .AddTo(_disposables);
+            _model.Died
+                  .TakeUntilDisable(_view) // if view gets killed, stop listening
+                  .Subscribe(_ => Transition(State.Dead))
+                  .AddTo(_cd);
 
-            // Physics-safe driving: move in FixedUpdate cadence.
+            // fixed-step movement
             Observable.EveryFixedUpdate()
                       .Subscribe(_ => TickFixed(Time.fixedDeltaTime))
-                      .AddTo(_disposables);
+                      .AddTo(_cd);
         }
 
-        /// <summary>Forward the model's pooling signal to spawners (e.g., factories/pools).</summary>
         public IObservable<Unit> ReturnedToPool => _model.ReturnedToPool;
 
-        public void Dispose() => _disposables.Dispose();
+        public void Dispose()
+        {
+            _stateScope.Dispose();
+            _cd.Dispose();
+        }
 
-        /// <summary>
-        /// Called when the enemy is taken from the pool for a fresh lifetime.
-        /// Resets model state, re-applies contact damage from stats, and refreshes modular views.
-        /// </summary>
+        // --- Pool API ---
         public void SpawnFromPool()
         {
             _model.ResetForSpawn();
-
-            // Keep contact damage in sync with stats at spawn.
             _view.SetContactDamage(_stats.Damage);
-
             _view.SetActive(true);
 
-            // Reset modular views for a fresh lifetime.
-            _healthBar?.OnSpawn();
-            _hitFx?.OnSpawn();
-            _healthBar?.SetVisible(true);
+            _isOnScreen = _view.IsVisible;
+            Transition(State.OutOfScreen); 
+            if (_isOnScreen) Transition(State.Active);
         }
 
-        /// <summary>
-        /// Called before returning to the pool. Stops motion and cleans up modular views
-        /// (kills tweens, resets UI), then deactivates the GameObject.
-        /// </summary>
         public void DespawnToPool()
         {
-            // Stop any motion first.
             _view.Stop();
-
-            // Clean modular views (kill tweens, reset visuals).
-            _hitFx?.OnDespawn();
-            _healthBar?.OnDespawn();
-
             _view.SetActive(false);
+            Transition(State.Pooled);
         }
 
-        /// <summary>
-        /// Fixed-step movement driver:
-        /// - Ticks model FSM with fixedDt.
-        /// - If player exists and model.CanMove is true, push velocity toward the player at MoveSpeed.
-        /// - Otherwise, apply zero velocity (idle).
-        /// </summary>
-        private void TickFixed(float fixedDt)
+        // --- Presenter-local state machine ---
+        private void Transition(State to)
         {
-            _model.Tick(fixedDt);
+            if (_state == to) return;
 
-            if (_player != null && _model.CanMove.Value)
+            // exit scope
+            _stateScope.Dispose();
+            _stateScope = new UniRx.CompositeDisposable();
+
+            // enter
+            switch (to)
             {
-                var dir = (_player.position - _view.Position);
-                if (dir.sqrMagnitude > 0.0001f)
-                {
-                    var vel = (Vector2)dir.normalized * _model.MoveSpeed;
-                    _view.ApplyVelocityFixed(vel, fixedDt);
-                    return;
-                }
+                case State.Pooled:
+                    _model.SetCanMove(false);
+                    _model.NotifyReturnedToPool();
+                    break;
+
+                case State.Active:
+                    _model.SetCanMove(true);
+                    break;
+
+                case State.OutOfScreen:
+                    _model.SetCanMove(true);
+                    UniRx.Observable.Timer(TimeSpan.FromSeconds(1.5f))
+                        .Where(_ => !_isOnScreen && _state == State.OutOfScreen)
+                        .Subscribe(_ => Transition(State.Pooled))
+                        .AddTo(_stateScope);
+                    break;
+
+                case State.Dead:
+                    _model.SetCanMove(false);
+                    _deathBus.Publish();
+                    _view.Stop();
+
+                    UniRx.Observable.Timer(TimeSpan.FromSeconds(1.0f))
+                        .Where(_ => _state == State.Dead)
+                        .Subscribe(_ => Transition(State.Pooled))
+                        .AddTo(_stateScope);
+                    break;
             }
 
-            _view.ApplyVelocityFixed(Vector2.zero, fixedDt);
+            _state = to;
+        }
+
+
+        private void TickFixed(float fixedDt)
+        {
+            var allowMove = (_state == State.Active || _state == State.OutOfScreen) && _model.CanMove.Value;
+            if (!allowMove || _player == null)
+            {
+                _view.ApplyVelocityFixed(Vector2.zero, fixedDt);
+                return;
+            }
+
+            var dir = (_player.position - _view.Position);
+            if (dir.sqrMagnitude <= 0.0001f)
+            {
+                _view.ApplyVelocityFixed(Vector2.zero, fixedDt);
+                return;
+            }
+
+            var vel = (Vector2)dir.normalized * _model.MoveSpeed;
+            _view.ApplyVelocityFixed(vel, fixedDt);
         }
     }
 }
