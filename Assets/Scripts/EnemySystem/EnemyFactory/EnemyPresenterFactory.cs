@@ -4,19 +4,17 @@ namespace Scripts
 {
     /// <summary>
     /// Builds a fully wired EnemyPresenter for a rented EnemyView using the given stats.
-    /// No EnemyHealthModel or DamageableAdapter — presenter handles wiring.
+    /// No EnemyHealthModel or DamageableAdapter, presenter handles wiring.
     /// </summary>
     public sealed class EnemyPresenterFactory : IEnemyPresenterFactory
     {
         private readonly DiContainer _container;
         private readonly PlayerView _player;
-        private readonly IEnemyDeathStream _deathBus;
 
-        public EnemyPresenterFactory(DiContainer container, PlayerView player, IEnemyDeathStream deathBus)
+        public EnemyPresenterFactory(DiContainer container, PlayerView player)
         {
             _container = container;
             _player = player;
-            _deathBus = deathBus;
         }
 
         public EnemyPresenter Create(EnemyView view, EnemyStats stats)
@@ -31,7 +29,6 @@ namespace Scripts
                 _player,
                 view,
                 stats,
-                _deathBus
             });
 
             return presenter;

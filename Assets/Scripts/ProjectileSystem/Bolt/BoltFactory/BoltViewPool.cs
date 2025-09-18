@@ -34,7 +34,7 @@ namespace Scripts
             base.OnRented(view);
             if (_activeParent != null)
                 view.CachedTransform.SetParent(_activeParent, worldPositionStays: true);
-            view.OnRent(); // Provided by PooledView
+            view.OnRent();
         }
 
         protected override void OnReleased(BoltView view)
@@ -42,7 +42,7 @@ namespace Scripts
             base.OnReleased(view);
             if (_pooledParent != null)
                 view.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
-            view.OnRelease(); // Provided by PooledView
+            view.OnRelease();
         }
     }
 }

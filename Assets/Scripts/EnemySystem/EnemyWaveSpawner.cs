@@ -65,7 +65,6 @@ namespace Scripts
 
             IObservable<Unit> seq = Observable.Empty<Unit>();
 
-            // Process entries in order (same behavior as your previous presenter). :contentReference[oaicite:0]{index=0}
             foreach (var entry in _wave.Entries)
             {
                 if (entry == null || entry.Stats == null || entry.CountPerWave <= 0) continue;

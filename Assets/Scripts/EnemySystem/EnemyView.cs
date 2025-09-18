@@ -17,7 +17,6 @@ namespace Scripts
         [Tooltip("Optional visual root (scale/pos). Defaults to this Transform.")]
         [SerializeField] private Transform _root;
 
-        // Contact damage is set by EnemyPresenter from EnemyStats.Damage at spawn.
         private int _contactDamage = 1;
 
         [Header("Optional Modules")]

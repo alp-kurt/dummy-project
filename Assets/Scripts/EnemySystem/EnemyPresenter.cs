@@ -2,7 +2,6 @@ using System;
 using UniRx;
 using UnityEngine;
 using Zenject;
-using DG.Tweening;
 
 namespace Scripts
 {
@@ -10,11 +9,17 @@ namespace Scripts
     {
         private enum State { Pooled, Active, OutOfScreen, Dead }
 
+        private static readonly Subject<Unit> _anyDied = new Subject<Unit>();
+        public static IObservable<Unit> AnyDied => _anyDied;
+
+        // Timings
+        private const float OffscreenDespawnSeconds = 1.5f;
+        private const float DeathDespawnSeconds = 1.0f;
+
         private readonly IEnemyModel _model;
         private readonly EnemyView _view;
         private readonly Transform _player;
         private readonly EnemyStats _stats;
-        private readonly IEnemyDeathStream _deathBus;
 
         private readonly CompositeDisposable _cd = new();
         private CompositeDisposable _stateScope = new();
@@ -27,32 +32,23 @@ namespace Scripts
             IEnemyModel model,
             PlayerView playerView,
             EnemyView view,
-            EnemyStats stats,
-            IEnemyDeathStream deathBus)
+            EnemyStats stats)
         {
             _model = model;
             _view = view;
             _stats = stats;
             _player = playerView ? playerView.transform : null;
-            _deathBus = deathBus;
 
             // init model + visuals
             _model.Initialize(_stats);
             _view.SetVisual(_stats.Sprite, _stats.SpriteScale);
             _view.SetContactDamage(_stats.Damage);
 
-            // let projectiles damage the model via the view
+            // allow projectiles to damage the model via the view
             _view.AttachModel(_model);
 
-            // subscribe hit fx
-            _model.Damaged.Subscribe(_ =>
-            {
-                var t = _view.GetComponentInChildren<SpriteRenderer>(true)?.transform ?? _view.transform;
-                t.DOKill(false);
-                t.DOPunchScale(new Vector3(-0.15f, -0.15f, 0f), 0.12f, 6, 0f).SetUpdate(true);
-            }).AddTo(_view);
 
-            // view visibility -> keep a simple flag and transition between Active/OutOfScreen
+            // visibility -> Active/OutOfScreen
             _view.VisibilityChanged
                  .DistinctUntilChanged()
                  .Subscribe(on =>
@@ -60,12 +56,12 @@ namespace Scripts
                      _isOnScreen = on;
                      if (_state == State.Active && !on) Transition(State.OutOfScreen);
                      else if (_state == State.OutOfScreen && on) Transition(State.Active);
-                     // ignore in Pooled/Dead
                  })
                  .AddTo(_cd);
 
+            // death -> transition to Dead (despawn timer lives in presenter)
             _model.Died
-                  .TakeUntilDisable(_view) // if view gets killed, stop listening
+                  .TakeUntilDisable(_view)
                   .Subscribe(_ => Transition(State.Dead))
                   .AddTo(_cd);
 
@@ -91,7 +87,7 @@ namespace Scripts
             _view.SetActive(true);
 
             _isOnScreen = _view.IsVisible;
-            Transition(State.OutOfScreen); 
+            Transition(State.OutOfScreen);
             if (_isOnScreen) Transition(State.Active);
         }
 
@@ -102,16 +98,14 @@ namespace Scripts
             Transition(State.Pooled);
         }
 
-        // --- Presenter-local state machine ---
+        // --- Presenter-local state machine (unchanged except Dead publish) ---
         private void Transition(State to)
         {
             if (_state == to) return;
 
-            // exit scope
             _stateScope.Dispose();
-            _stateScope = new UniRx.CompositeDisposable();
+            _stateScope = new CompositeDisposable();
 
-            // enter
             switch (to)
             {
                 case State.Pooled:
@@ -125,27 +119,27 @@ namespace Scripts
 
                 case State.OutOfScreen:
                     _model.SetCanMove(true);
-                    UniRx.Observable.Timer(TimeSpan.FromSeconds(1.5f))
-                        .Where(_ => !_isOnScreen && _state == State.OutOfScreen)
-                        .Subscribe(_ => Transition(State.Pooled))
-                        .AddTo(_stateScope);
+                    Observable.Timer(TimeSpan.FromSeconds(OffscreenDespawnSeconds))
+                              .Where(_ => !_isOnScreen && _state == State.OutOfScreen)
+                              .Subscribe(_ => Transition(State.Pooled))
+                              .AddTo(_stateScope);
                     break;
 
                 case State.Dead:
                     _model.SetCanMove(false);
-                    _deathBus.Publish();
                     _view.Stop();
 
-                    UniRx.Observable.Timer(TimeSpan.FromSeconds(1.0f))
-                        .Where(_ => _state == State.Dead)
-                        .Subscribe(_ => Transition(State.Pooled))
-                        .AddTo(_stateScope);
+                    _anyDied.OnNext(Unit.Default);
+
+                    Observable.Timer(TimeSpan.FromSeconds(DeathDespawnSeconds))
+                              .Where(_ => _state == State.Dead)
+                              .Subscribe(_ => Transition(State.Pooled))
+                              .AddTo(_stateScope);
                     break;
             }
 
             _state = to;
         }
-
 
         private void TickFixed(float fixedDt)
         {

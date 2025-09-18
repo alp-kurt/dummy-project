@@ -22,9 +22,6 @@ namespace Scripts
             if (_activeParent == null) throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
             if (_max < _min) throw new System.Exception($"{nameof(EnemySystemInstaller)}: max ({_max}) < min ({_min}).");
 
-            // ---- Cross-cutting streams/services ----
-            Container.Bind<IEnemyDeathStream>().To<EnemyDeathStream>().AsSingle();
-
             // ---- Active root for presenters/factories ----
             Container.Bind<Transform>()
                      .WithId("ActiveEnemiesRoot")

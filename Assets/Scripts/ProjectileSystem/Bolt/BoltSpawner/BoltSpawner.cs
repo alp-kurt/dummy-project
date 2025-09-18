@@ -23,7 +23,7 @@ namespace Scripts
         private readonly CompositeDisposable _cd = new();
 
         private IBoltFactory _factory;
-        private PlayerView _player; // optional origin fallback
+        private PlayerView _player;
 
         [Inject] private BoltConfig _boltConfig;
 
