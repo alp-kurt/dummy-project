@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfcc3c301651440138d19410ed8fb4b1, type: 3}
+  m_Name: Lv1_Wave_A
+  m_EditorClassIdentifier: 
+  _entries:
+  - _stats: {fileID: 11400000, guid: a532fd691603e4d2fa7241f9cc158cea, type: 2}
+    _countPerWave: 6
+  - _stats: {fileID: 11400000, guid: d01d0451fcf4c41a3a865512c8d0d428, type: 2}
+    _countPerWave: 6
+  _waveIntervalSeconds: 1
+  _offscreenPadding: 1
