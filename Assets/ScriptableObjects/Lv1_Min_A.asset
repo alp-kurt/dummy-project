@@ -15,5 +15,5 @@ MonoBehaviour:
   _maxHealth: 8
   _movementSpeed: 0.9
   _damage: 1
-  _sprite: {fileID: 21300000, guid: 70901831e0c73497dac8d24d3763bab4, type: 3}
+  _sprite: {fileID: -666966080, guid: eee516f578719462eaaadef27cd356a3, type: 3}
   _spriteScale: 1
