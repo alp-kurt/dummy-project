@@ -64,7 +64,7 @@ namespace Scripts
 
         public void Stop()
         {
-            if (_rigidbody2D != null) _rigidbody2D.velocity = Vector2.zero;
+            if (_rigidbody2D != null) _rigidbody2D.linearVelocity = Vector2.zero;
         }
 
         private void OnBecameVisible()
