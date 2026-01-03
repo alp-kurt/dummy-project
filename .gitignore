@@ -77,3 +77,7 @@ Assets/.DS_Store
 Assets/Plugins/.DS_Store
 Assets/Sprites/.DS_Store
 .DS_Store
+.vscode/extensions.json
+.vscode/launch.json
+.vscode/settings.json
+dummy-project.slnx
