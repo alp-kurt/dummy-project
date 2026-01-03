@@ -94,12 +94,6 @@ namespace Scripts
                 // Force desired spawn scale
                 handle.View.CachedTransform.localScale = _spawnScale;
 
-                // Auto-release on return to pool
-                handle.ReturnedToPool
-                      .Take(1)
-                      .Subscribe(__ => handle.Release())
-                      .AddTo(handle.View);
-
                 // Factory already spawned with (position, dir)
             }
 

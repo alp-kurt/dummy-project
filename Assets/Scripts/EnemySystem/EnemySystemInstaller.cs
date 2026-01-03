@@ -22,24 +22,32 @@ namespace Scripts
             if (_activeParent == null) throw new System.Exception($"{nameof(EnemySystemInstaller)}: Active parent is not assigned.");
             if (_max < _min) throw new System.Exception($"{nameof(EnemySystemInstaller)}: max ({_max}) < min ({_min}).");
 
+            if (!Container.HasBinding<SignalBus>())
+            {
+                SignalBusInstaller.Install(Container);
+            }
+
+            Container.DeclareSignal<EnemySpawnedSignal>().OptionalSubscriber();
+            Container.DeclareSignal<EnemyDiedSignal>().OptionalSubscriber();
+            Container.DeclareSignal<EnemyReturnedToPoolSignal>().OptionalSubscriber();
+
+            Container.Bind<Transform>()
+                     .WithId("PooledEnemiesRoot")
+                     .FromInstance(_pooledParent)
+                     .AsCached();
+
             // ---- Active root for presenters/factories ----
             Container.Bind<Transform>()
                      .WithId("ActiveEnemiesRoot")
                      .FromInstance(_activeParent)
-                     .AsSingle();
+                     .AsCached();
 
-            // ---- Enemy view factory + pool ----
-            Container.Bind<IObjectFactory<EnemyView>>()
-                .To<PrefabFactory<EnemyView>>()
-                .AsSingle()
-                .WithArguments(_enemyPrefab, _pooledParent);
-
-            Container.Bind<IObjectPool<EnemyView>>()
-                .To<EnemyViewPool>()
-                .AsSingle()
-                .WithArguments(_min, _max, _pooledParent, _activeParent);
-
-            Container.Bind<IEnemyViewRenter>().To<EnemyViewRenter>().AsSingle();
+            // ---- Enemy view memory pool ----
+            Container.BindMemoryPool<EnemyView, EnemyViewPool>()
+                     .WithInitialSize(_min)
+                     .WithMaxSize(_max)
+                     .FromComponentInNewPrefab(_enemyPrefab)
+                     .UnderTransform(_pooledParent);
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
 
             // ---- Simple spawner (MonoBehaviour in scene; no MVP) ----

@@ -9,12 +9,18 @@ namespace Scripts
     /// </summary>
     public sealed class EnemyFactory : IEnemyFactory
     {
-        private readonly IEnemyViewRenter _viewRenter;
+        private readonly EnemyViewPool _viewPool;
+        private readonly IInstantiator _instantiator;
         private readonly PlayerView _player;
 
-        public EnemyFactory(IEnemyViewRenter viewRenter, [Inject(Optional = true)] PlayerView player)
+        public EnemyFactory(
+            EnemyViewPool viewPool,
+            IInstantiator instantiator,
+            [Inject(Optional = true)] PlayerView player
+        )
         {
-            _viewRenter = viewRenter;
+            _viewPool = viewPool;
+            _instantiator = instantiator;
             _player = player;
         }
 
@@ -22,11 +28,14 @@ namespace Scripts
         {
             if (stats == null) throw new ArgumentNullException(nameof(stats));
 
-            var view = _viewRenter.Rent(worldPosition);
-            var model = new EnemyModel();
-            var presenter = new EnemyPresenter(model, view, stats, _player ? _player.transform : null);
+            var view = _viewPool.Spawn();
+            view.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+            view.transform.localScale = Vector3.one;
+            var model = _instantiator.Instantiate<EnemyModel>();
+            var presenter = _instantiator.Instantiate<EnemyPresenter>(
+                new object[] { model, view, stats, _player ? _player.transform : null });
 
-            return new EnemyHandle(view, presenter, _viewRenter);
+            return new EnemyHandle(view, presenter, _viewPool);
         }
     }
 }

@@ -30,18 +30,31 @@ namespace Scripts
             if (_max < _min) throw new System.Exception($"[BoltSystemInstaller] max ({_max}) < min ({_min}).");
             if (!_boltConfig) throw new System.NullReferenceException("[BoltSystemInstaller] BoltConfig is not assigned.");
 
-            // Factory + Pool
-            Container.Bind<IObjectFactory<BoltView>>()
-                     .To<PrefabFactory<BoltView>>()
-                     .AsSingle()
-                     .WithArguments(_boltPrefab, _pooledParent);
+            if (!Container.HasBinding<SignalBus>())
+            {
+                SignalBusInstaller.Install(Container);
+            }
 
-            Container.Bind<IObjectPool<BoltView>>()
-                     .To<BoltViewPool>()
-                     .AsSingle()
-                     .WithArguments(_min, _max, _pooledParent, _activeParent);
+            Container.DeclareSignal<BoltSpawnedSignal>();
+            Container.DeclareSignal<BoltReturnedToPoolSignal>();
 
-            Container.Bind<IBoltViewRenter>().To<BoltViewRenter>().AsSingle();
+            Container.Bind<Transform>()
+                     .WithId("PooledBoltsRoot")
+                     .FromInstance(_pooledParent)
+                     .AsCached();
+
+            Container.Bind<Transform>()
+                     .WithId("ActiveBoltsRoot")
+                     .FromInstance(_activeParent)
+                     .AsCached();
+
+            // Memory Pool
+            Container.BindMemoryPool<BoltView, BoltViewPool>()
+                     .WithInitialSize(_min)
+                     .WithMaxSize(_max)
+                     .FromComponentInNewPrefab(_boltPrefab)
+                     .UnderTransform(_pooledParent);
+
             Container.Bind<IBoltPresenterFactory>().To<BoltPresenterFactory>().AsSingle();
             Container.Bind<IBoltFactory>().To<BoltFactory>().AsSingle();
 

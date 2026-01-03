@@ -1,48 +1,38 @@
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
     /// <summary>
-    /// Typed pool that re-parents EnemyView under pooled/active roots automatically.
+    /// Zenject memory pool for EnemyView with parenting and baseline reset.
     /// </summary>
-    public sealed class EnemyViewPool : ObjectPool<EnemyView>
+    public sealed class EnemyViewPool : MonoMemoryPool<EnemyView>
     {
-        private readonly Transform _pooledParent;
-        private readonly Transform _activeParent;
+        private Transform _pooledParent;
+        private Transform _activeParent;
 
-        // DI supplies factory; installer supplies min/max + parents
-        public EnemyViewPool(
-            IObjectFactory<EnemyView> factory,
-            int min, int max,
-            Transform pooledParent,
-            Transform activeParent
-        ) : base(factory, min, max)
+        [Inject]
+        public void Construct(
+            [Inject(Id = "PooledEnemiesRoot")] Transform pooledParent,
+            [Inject(Id = "ActiveEnemiesRoot")] Transform activeParent
+        )
         {
             _pooledParent = pooledParent;
             _activeParent = activeParent;
         }
 
-        protected override void OnCreated(EnemyView instance)
-        {
-            if (_pooledParent != null)
-                instance.transform.SetParent(_pooledParent, false);
-
-            base.OnCreated(instance); // default: inactive
-        }
-
-        protected override void OnRented(EnemyView instance)
+        protected override void OnSpawned(EnemyView item)
         {
             if (_activeParent != null)
-                instance.transform.SetParent(_activeParent, false);
-
-            base.OnRented(instance);  // default: OnRent() activates
+                item.transform.SetParent(_activeParent, false);
+            item.OnRent();
         }
 
-        protected override void OnReleased(EnemyView instance)
+        protected override void OnDespawned(EnemyView item)
         {
-            base.OnReleased(instance); // default: OnRelease() deactivates
+            item.OnRelease();
             if (_pooledParent != null)
-                instance.transform.SetParent(_pooledParent, false);
+                item.transform.SetParent(_pooledParent, false);
         }
     }
 }

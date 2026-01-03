@@ -1,12 +1,14 @@
 using System;          
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
     public sealed class BoltHandle : IBoltHandle, IDisposable
     {
-        private readonly IBoltViewRenter _renter;
+        private readonly BoltViewPool _pool;
+        private readonly SignalBus _signalBus;
         private readonly Subject<Unit> _returnedSubject = new();
         private readonly CompositeDisposable _disposables = new();
         private bool _isDespawned;
@@ -15,15 +17,21 @@ namespace Scripts
         public BoltPresenter Presenter { get; }
         public IObservable<Unit> ReturnedToPool => _returnedSubject;
 
-        public BoltHandle(IBoltViewRenter renter, BoltView view, BoltPresenter presenter)
+        public BoltHandle(BoltViewPool pool, BoltView view, BoltPresenter presenter, SignalBus signalBus)
         {
-            _renter = renter;
+            _pool = pool;
             View = view;
             Presenter = presenter;
+            _signalBus = signalBus;
 
             Presenter.DespawnRequested
             .Subscribe(_ => Despawn())
             .AddTo(_disposables);
+
+            ReturnedToPool
+                .Take(1)
+                .Subscribe(_ => Dispose())
+                .AddTo(_disposables);
         }
 
         public void Spawn(Vector3 position, Vector3 directionNormalized)
@@ -37,8 +45,10 @@ namespace Scripts
             _isDespawned = true;
 
             Presenter.PrepareForDespawn();  // stops motion, deactivates view
-            _renter.Return(View);          // physically return to pool
+            _pool.Despawn(View);           // physically return to pool
             _returnedSubject.OnNext(Unit.Default);
+
+            _signalBus.Fire(new BoltReturnedToPoolSignal { View = View });
         }
 
         public void Release()

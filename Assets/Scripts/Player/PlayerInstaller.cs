@@ -40,6 +40,10 @@ namespace Scripts
                 .AsSingle()
                 .NonLazy();
 
+            Container.BindInterfacesTo<PlayerHealthBarView>()
+                .FromComponentInHierarchy()
+                .AsSingle();
+
             // Camera
             if (_camera)
             {

@@ -14,7 +14,7 @@ A tiny, reusable system that tracks enemy kills and displays the count on the HU
 
 ## How It Works
 
-1. EnemyKillCounterPresenter.Initialize() subscribes to IEnemyDeathStream.Died and calls model.Increment().
+1. EnemyKillCounterPresenter.Initialize() subscribes to SignalBus `EnemyDiedSignal` and calls model.Increment().
 
 2. Presenter also subscribes to model.Count and calls view.SetCount(value).
 
@@ -30,4 +30,4 @@ A tiny, reusable system that tracks enemy kills and displays the count on the HU
         Container.Bind<IEnemyKillCounterModel>().To<EnemyKillCounterModel>().AsSingle();
         Container.BindInterfacesTo<EnemyKillCounterPresenter>().AsSingle().NonLazy();
 
-3. Ensure your enemy system publishes deaths through IEnemyDeathStream.
+3. Ensure your enemy system declares and fires `EnemyDiedSignal` via SignalBus.

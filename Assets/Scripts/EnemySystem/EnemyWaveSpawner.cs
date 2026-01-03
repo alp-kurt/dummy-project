@@ -127,11 +127,6 @@ namespace Scripts
             try { handle = _enemyFactory.Create(stats, pos); }
             catch { return; } // pool exhausted or factory not ready
 
-            handle.ReturnedToPool
-                  .Take(1)
-                  .Subscribe(__ => handle.Release())
-                  .AddTo(handle.View);
-
             handle.Spawn();
         }
 

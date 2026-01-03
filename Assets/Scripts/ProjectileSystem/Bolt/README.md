@@ -16,7 +16,7 @@ The Bolt System is a concrete projectile built on top of the shared Projectile S
 
 * View (pooled prefab): BoltView (your prefab/component) — sprite/collider and pooling hooks as described by the foundation’s ProjectileView.
 
-* Pooling: BoltViewPool.cs and BoltViewRenter.cs — reuse instances; renter handles activation/return. Matches the foundation’s pooling guidance.
+* Pooling: BoltViewPool.cs — Zenject `MonoMemoryPool` handling parenting and activation/reset.
 
 * Factory: BoltFactory.cs + BoltPresenterFactory.cs — composes View+Model+Presenter into a BoltHandle and applies scale override immediately after rent to keep visuals consistent.
 
@@ -32,13 +32,15 @@ The Bolt System is a concrete projectile built on top of the shared Projectile S
 
 Use BoltSystemInstaller.cs in your SceneContext; it binds:
 
-* Pooling & Factory: IObjectFactory<BoltView>, IObjectPool<BoltView>, IBoltViewRenter, IBoltPresenterFactory, IBoltFactory
+* Pooling & Factory: BoltViewPool (MonoMemoryPool), IBoltPresenterFactory, IBoltFactory
 
 * Ricochet Tunables: edge padding, cooldown (ids)
 
 * Spawner (pure DI): BoltSpawnerConfig + BoltConfig, IBoltSpawnerModel, BoltSpawnerPresenter (as ITickable)
 
 * Player Position: ensure PlayerInstaller binds IPlayerPosition (adapter over PlayerView)
+
+* Signals: BoltSpawnedSignal, BoltReturnedToPoolSignal
 
 ## Designer Tuning
 

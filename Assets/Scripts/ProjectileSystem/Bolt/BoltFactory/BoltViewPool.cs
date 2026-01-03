@@ -1,48 +1,38 @@
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
     /// <summary>
-    /// Typed pool that manages parenting only. Active/inactive is driven by PooledView hooks.
+    /// Zenject memory pool for BoltView with parenting and baseline reset.
     /// </summary>
-    public sealed class BoltViewPool : ObjectPool<BoltView>
+    public sealed class BoltViewPool : MonoMemoryPool<BoltView>
     {
-        private readonly Transform _pooledParent;
-        private readonly Transform _activeParent;
+        private Transform _pooledParent;
+        private Transform _activeParent;
 
-        public BoltViewPool(
-            IObjectFactory<BoltView> factory,
-            int min,
-            int max,
-            Transform pooledParent,
-            Transform activeParent
-        ) : base(factory, min, max)
+        [Inject]
+        public void Construct(
+            [Inject(Id = "PooledBoltsRoot")] Transform pooledParent,
+            [Inject(Id = "ActiveBoltsRoot")] Transform activeParent
+        )
         {
             _pooledParent = pooledParent;
             _activeParent = activeParent;
         }
 
-        protected override void OnCreated(BoltView view)
+        protected override void OnSpawned(BoltView item)
         {
-            base.OnCreated(view);
-            if (_pooledParent != null)
-                view.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
-        }
-
-        protected override void OnRented(BoltView view)
-        {
-            base.OnRented(view);
             if (_activeParent != null)
-                view.CachedTransform.SetParent(_activeParent, worldPositionStays: true);
-            view.OnRent();
+                item.CachedTransform.SetParent(_activeParent, worldPositionStays: false);
+            item.OnRent();
         }
 
-        protected override void OnReleased(BoltView view)
+        protected override void OnDespawned(BoltView item)
         {
-            base.OnReleased(view);
+            item.OnRelease();
             if (_pooledParent != null)
-                view.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
-            view.OnRelease();
+                item.CachedTransform.SetParent(_pooledParent, worldPositionStays: false);
         }
     }
 }

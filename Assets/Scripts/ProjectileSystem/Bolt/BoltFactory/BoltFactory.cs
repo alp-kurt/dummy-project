@@ -1,21 +1,30 @@
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
     public sealed class BoltFactory : IBoltFactory
     {
-        private readonly IBoltViewRenter _viewRenter;
+        private readonly BoltViewPool _viewPool;
         private readonly IBoltPresenterFactory _presenterFactory;
+        private readonly SignalBus _signalBus;
 
-        public BoltFactory(IBoltViewRenter viewRenter, IBoltPresenterFactory presenterFactory)
+        public BoltFactory(
+            BoltViewPool viewPool,
+            IBoltPresenterFactory presenterFactory,
+            SignalBus signalBus
+        )
         {
-            _viewRenter = viewRenter;
+            _viewPool = viewPool;
             _presenterFactory = presenterFactory;
+            _signalBus = signalBus;
         }
 
         public IBoltHandle Create(Vector3 position, Vector3 directionNormalized, BoltConfig config)
         {
-            var view = _viewRenter.Rent(position);
+            var view = _viewPool.Spawn();
+            view.CachedTransform.SetPositionAndRotation(position, Quaternion.identity);
+            view.CachedTransform.localScale = Vector3.one;
 
             // Optional scale override from BoltConfig
             if (config != null && config.ScaleOverride > 0f)
@@ -26,8 +35,16 @@ namespace Scripts
 
             var presenter = _presenterFactory.Create(view, config);
 
-            var handle = new BoltHandle(_viewRenter, view, presenter);
+            var handle = new BoltHandle(_viewPool, view, presenter, _signalBus);
             handle.Spawn(position, directionNormalized);
+
+            _signalBus.Fire(new BoltSpawnedSignal
+            {
+                View = view,
+                SpawnPosition = position,
+                DirectionNormalized = directionNormalized
+            });
+
             return handle;
         }
     }

@@ -5,16 +5,15 @@ A lightweight enemy pipeline tuned for horde-style gameplay: pooled views, a pre
 ## Current Architecture
 
 ### Presenter-centric lifecycle
-* **EnemyPresenter.cs** binds one `EnemyModel` to one `EnemyView` and tracks a private state enum: `Pooled → OutOfScreen → Active → Dead`. The presenter pushes the model/view into the right mode, despawns when the enemy stays off camera, and announces death via the static `AnyDied` stream.
+* **EnemyPresenter.cs** binds one `EnemyModel` to one `EnemyView` and tracks a private state enum: `Pooled → OutOfScreen → Active → Dead`. The presenter pushes the model/view into the right mode, despawns when the enemy stays off camera, and fires `EnemyDiedSignal` / `EnemyReturnedToPoolSignal` via SignalBus.
 * **EnemyModel.cs / IEnemyModel.cs** hold movement flags, health, and damage values. The presenter toggles `CanMove`, while the view forwards hits back to `ReceiveDamage`.
 * **EnemyView.cs** is the pooled MonoBehaviour. It reports visibility changes, owns optional helpers like `EnemyHealthBarView`, and exposes `AttachModel` so the presenter can hook the model every spawn.
 
 ### Factory & pooling
 * **EnemyFactory/** contains the workflow for spawning:
-  * `EnemyFactory` rents a view, creates the model + presenter, then returns an `EnemyHandle` facade.
-  * `EnemyHandle` exposes `Spawn`, `Despawn`, `ReturnedToPool`, and returns the view to the pool on `Release`.
-  * `EnemyViewRenter` requests instances from the pool and does baseline transform reset.
-  * `EnemyViewPool` inherits from the shared `ObjectPool` and handles parenting enemies under inactive vs. active roots.
+  * `EnemyFactory` spawns a view from the Zenject `EnemyViewPool`, creates the model + presenter, then returns an `EnemyHandle` facade.
+  * `EnemyHandle` exposes `Spawn`, `Despawn`, and auto-releases to the pool after the presenter signals `ReturnedToPool`.
+  * `EnemyViewPool` is a Zenject `MonoMemoryPool` that handles parenting and baseline reset.
 
 ### Spawning & configuration
 * **EnemyWaveSpawner.cs** is a MonoBehaviour registered via `EnemySystemInstaller`. It reads an `EnemyWaveConfig`, optionally spreads work across frames, and asks the factory to create enemies just outside the camera view.
@@ -36,8 +35,7 @@ EnemySystem/
 └── EnemyFactory/
     ├── EnemyFactory.cs
     ├── EnemyHandle.cs
-    ├── EnemyViewPool.cs
-    └── EnemyViewRenter.cs
+    └── EnemyViewPool.cs
 ```
 
 ## Setup & Usage
@@ -60,9 +58,9 @@ EnemySystem/
 
 ### Runtime flow
 * The wave spawner ticks `EnemyWaveConfig` entries, requests enemies from `EnemyFactory`, and positions them just outside the camera bounds.
-* `EnemyFactory` rents a pooled view via `EnemyViewRenter`, builds a fresh model + presenter pair, and returns an `EnemyHandle` to the spawner.
+* `EnemyFactory` spawns a pooled view via `EnemyViewPool`, builds a fresh model + presenter pair, and returns an `EnemyHandle` to the spawner.
 * When the spawner calls `handle.Spawn()`, the presenter transitions to `OutOfScreen`. As soon as the `EnemyView` reports visibility, the state flips to `Active`; staying off-screen long enough returns to `Pooled`. Death also transitions to `Dead`, then to `Pooled` after the delay.
-* Once the presenter signals `ReturnedToPool`, the spawner disposes the handle, returning the view to the pool.
+* When the presenter signals `ReturnedToPool`, the handle auto-releases the view to the pool. Signals are emitted for spawn/death/return events.
 
 ### Layer & collision reminders
 * Ensure enemies have the proper `Collider2D` and are on the correct physics layer for your project.

@@ -9,9 +9,6 @@ namespace Scripts
     {
         private enum State { Pooled, OutOfScreen, Active, Dead }
 
-        private static readonly Subject<Unit> _anyDied = new();
-        public static IObservable<Unit> AnyDied => _anyDied;
-
         // Timings
         private static readonly TimeSpan OffscreenDespawnDelay = TimeSpan.FromSeconds(1.5f);
         private static readonly TimeSpan DeathDespawnDelay = TimeSpan.FromSeconds(1.0f);
@@ -20,18 +17,20 @@ namespace Scripts
         private readonly EnemyView _view;
         private readonly Transform _player;
         private readonly EnemyStats _stats;
+        private readonly SignalBus _signalBus;
 
         private readonly ReactiveProperty<State> _state = new(State.Pooled);
         private readonly Subject<Unit> _returnedToPool = new();
         private readonly CompositeDisposable _disposables = new();
 
         [Inject]
-        public EnemyPresenter(EnemyModel model, EnemyView view, EnemyStats stats, Transform player)
+        public EnemyPresenter(EnemyModel model, EnemyView view, EnemyStats stats, Transform player, SignalBus signalBus)
         {
             _model = model;
             _view = view;
             _stats = stats;
             _player = player;
+            _signalBus = signalBus;
 
             // init model + visuals
             _model.Initialize(_stats);
@@ -59,6 +58,13 @@ namespace Scripts
             {
                 SetState(State.Active);
             }
+
+            _signalBus.Fire(new EnemySpawnedSignal
+            {
+                View = _view,
+                Stats = _stats,
+                SpawnPosition = _view.Position
+            });
         }
 
         public void DespawnToPool()
@@ -77,7 +83,11 @@ namespace Scripts
             _state
                 .Skip(1)
                 .Where(state => state == State.Pooled)
-                .Subscribe(_ => _returnedToPool.OnNext(Unit.Default))
+                .Subscribe(_ =>
+                {
+                    _returnedToPool.OnNext(Unit.Default);
+                    _signalBus.Fire(new EnemyReturnedToPoolSignal { View = _view });
+                })
                 .AddTo(_disposables);
 
             _view.VisibilityChanged
@@ -142,7 +152,7 @@ namespace Scripts
                 case State.Dead:
                     _model.SetCanMove(false);
                     _view.Stop();
-                    _anyDied.OnNext(Unit.Default);
+                    _signalBus.Fire(new EnemyDiedSignal { View = _view, Stats = _stats });
                     break;
             }
         }

@@ -10,13 +10,19 @@ namespace Scripts
     {
         private readonly EnemyView _view;
         private readonly EnemyPresenter _presenter;
-        private readonly IEnemyViewRenter _renter;
+        private readonly EnemyViewPool _pool;
+        private readonly CompositeDisposable _disposables = new();
 
-        public EnemyHandle(EnemyView view, EnemyPresenter presenter, IEnemyViewRenter renter)
+        public EnemyHandle(EnemyView view, EnemyPresenter presenter, EnemyViewPool pool)
         {
             _view = view;
             _presenter = presenter;
-            _renter = renter;
+            _pool = pool;
+
+            _presenter.ReturnedToPool
+                      .Take(1)
+                      .Subscribe(_ => Release())
+                      .AddTo(_disposables);
         }
 
         public EnemyView View => _view;
@@ -31,7 +37,8 @@ namespace Scripts
         {
             Despawn();
             _presenter.Dispose();
-            _renter.Return(_view);
+            _pool.Despawn(_view);
+            _disposables.Dispose();
         }
     }
 }
