@@ -7,20 +7,20 @@ namespace Scripts
     {
         private readonly DiContainer _container;
         private readonly Camera _camera;
-        private readonly Transform _activeEnemiesRoot;
+        private readonly IBoltTargetingService _targetingService;
         private readonly float _edgePaddingWorld;
         private readonly float _ricochetCooldown;
 
         public BoltPresenterFactory(
             DiContainer container,
             Camera camera,
-            [Inject(Id = "ActiveEnemiesRoot")] Transform activeEnemiesRoot,
+            IBoltTargetingService targetingService,
             [Inject(Id = "BoltEdgePaddingWorld", Optional = true)] float edgePaddingWorld = 0.25f,
             [Inject(Id = "BoltRicochetCooldown", Optional = true)] float ricochetCooldown = 0.08f)
         {
             _container = container;
             _camera = camera;
-            _activeEnemiesRoot = activeEnemiesRoot;
+            _targetingService = targetingService;
             _edgePaddingWorld = edgePaddingWorld;
             _ricochetCooldown = ricochetCooldown;
         }
@@ -41,7 +41,7 @@ namespace Scripts
                 (IBoltModel)model,
                 view,
                 _camera,
-                _activeEnemiesRoot,
+                _targetingService,
                 _edgePaddingWorld,
                 _ricochetCooldown
             });

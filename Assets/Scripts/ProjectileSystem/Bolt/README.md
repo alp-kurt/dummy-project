@@ -14,6 +14,9 @@ The Bolt System is a concrete projectile built on top of the shared Projectile S
 
 * Presenter (per bolt): BoltPresenter.cs — moves the bolt and orchestrates collisions and despawn. Mirrors the foundation’s Presenter responsibilities (Initialize / per-spawn InitializeMotion / Despawn).
 
+* Targeting: BoltTargetingService.cs — resolves redirect directions (closest visible enemy or a safe random fallback).
+    * Uses EnemyRegistry (signal-driven) for fast, allocation-free lookups.
+
 * View (pooled prefab): BoltView (your prefab/component) — sprite/collider and pooling hooks as described by the foundation’s ProjectileView.
 
 * Pooling: BoltViewPool.cs — Zenject `MonoMemoryPool` handling parenting and activation/reset.

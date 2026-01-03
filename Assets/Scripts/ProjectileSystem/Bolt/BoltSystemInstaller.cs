@@ -59,6 +59,7 @@ namespace Scripts
 
             Container.Bind<IBoltPresenterFactory>().To<BoltPresenterFactory>().AsSingle();
             Container.Bind<IBoltFactory>().To<BoltFactory>().AsSingle();
+            Container.Bind<IBoltTargetingService>().To<BoltTargetingService>().AsSingle();
 
             // Tunables for presenter factory
             Container.Bind<float>().WithId("BoltEdgePaddingWorld").FromInstance(_edgePaddingWorld).IfNotBound();

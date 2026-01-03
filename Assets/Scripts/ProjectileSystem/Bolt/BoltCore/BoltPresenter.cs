@@ -5,7 +5,7 @@ namespace Scripts
 {
     public class BoltPresenter : ProjectilePresenter
     {
-        private readonly Transform _activeEnemiesRoot;
+        private readonly IBoltTargetingService _targetingService;
         private readonly Camera _camera;
 
         private readonly float _edgePaddingWorld;
@@ -16,20 +16,15 @@ namespace Scripts
             IBoltModel model,
             BoltView view,
             Camera camera,
-            Transform activeEnemiesRoot,
+            IBoltTargetingService targetingService,
             float edgePaddingWorld = 0.25f,
             float ricochetCooldown = 0.08f
         ) : base(model, view)
         {
             _camera = camera;
-            _activeEnemiesRoot = activeEnemiesRoot;
+            _targetingService = targetingService;
             _edgePaddingWorld = Mathf.Max(0f, edgePaddingWorld);
             _ricochetCooldown = Mathf.Max(0f, ricochetCooldown);
-        }
-
-        public override void Initialize()
-        {
-            base.Initialize();
         }
 
         protected override void OnSpawned()
@@ -59,74 +54,70 @@ namespace Scripts
         {
             if (_camera == null) return;
 
-            if (_ricochetCdTimer > 0f)
-                _ricochetCdTimer -= Time.deltaTime;
+            UpdateRicochetCooldown();
 
-            var pos = GetPosition();
-            var vp = _camera.WorldToViewportPoint(pos);
+            var position = GetPosition();
+            var viewportPoint = _camera.WorldToViewportPoint(position);
+            var viewportPadding = GetViewportPadding(position);
 
-            bool outsideX = (vp.x < 0f) || (vp.x > 1f);
-            bool outsideY = (vp.y < 0f) || (vp.y > 1f);
+            if (!IsOutsideViewport(viewportPoint, viewportPadding) || !IsRicochetReady())
+                return;
 
-            if ((outsideX || outsideY) && _ricochetCdTimer <= 0f)
-            {
-                RedirectTowardClosestEnemyOrRandom();
-                _ricochetCdTimer = _ricochetCooldown;
+            SetDirection(_targetingService.GetRedirectDirection(GetPosition()));
+            _ricochetCdTimer = _ricochetCooldown;
 
-                var clampedVp = new Vector3(
-                    Mathf.Clamp(vp.x, 0.001f, 0.999f),
-                    Mathf.Clamp(vp.y, 0.001f, 0.999f),
-                    vp.z
-                );
-                var clampedPos = _camera.ViewportToWorldPoint(clampedVp);
-                View.SetPosition(clampedPos);
-            }
+            var clampedViewportPoint = ClampViewportPoint(viewportPoint, viewportPadding);
+            var clampedPosition = _camera.ViewportToWorldPoint(clampedViewportPoint);
+            View.SetPosition(clampedPosition);
         }
 
-        private void RedirectTowardClosestEnemyOrRandom()
+        private void UpdateRicochetCooldown()
         {
-            var target = FindClosestActiveEnemy();
-            if (target != null)
-            {
-                var dir = (target.position - GetPosition());
-                SetDirection(dir.sqrMagnitude > 0f ? dir.normalized : SafeRandomDirection());
-            }
-            else
-            {
-                SetDirection(SafeRandomDirection());
-            }
+            if (_ricochetCdTimer <= 0f) return;
+            _ricochetCdTimer -= Time.deltaTime;
         }
 
-        private Vector3 SafeRandomDirection()
+        private bool IsRicochetReady() => _ricochetCdTimer <= 0f;
+
+        private Vector2 GetViewportPadding(Vector3 worldPosition)
         {
-            var rnd = UnityEngine.Random.insideUnitCircle;
-            if (rnd == Vector2.zero) rnd = Vector2.right;
-            rnd.Normalize();
-            return new Vector3(rnd.x, rnd.y, 0f);
+            if (_edgePaddingWorld <= 0f) return Vector2.zero;
+
+            var rightOffset = _camera.WorldToViewportPoint(worldPosition + Vector3.right * _edgePaddingWorld);
+            var upOffset = _camera.WorldToViewportPoint(worldPosition + Vector3.up * _edgePaddingWorld);
+            var origin = _camera.WorldToViewportPoint(worldPosition);
+
+            return new Vector2(
+                Mathf.Abs(rightOffset.x - origin.x),
+                Mathf.Abs(upOffset.y - origin.y)
+            );
         }
 
-        private Transform FindClosestActiveEnemy()
+        private static bool IsOutsideViewport(Vector3 viewportPoint, Vector2 padding)
         {
-            if (_activeEnemiesRoot == null) return null;
-
-            var pos = GetPosition();
-            EnemyView closestView = null;
-            float bestSq = float.PositiveInfinity;
-
-            var views = _activeEnemiesRoot.GetComponentsInChildren<EnemyView>(includeInactive: false);
-            foreach (var v in views)
-            {
-                if (!v || !v.gameObject.activeInHierarchy) continue;
-                if (!v.IsVisible) continue;
-
-                float d2 = (v.Position - pos).sqrMagnitude;
-                if (d2 < bestSq)
-                {
-                    bestSq = d2;
-                    closestView = v;
-                }
-            }
-            return closestView ? closestView.transform : null;
+            var safePadding = ClampViewportPadding(padding);
+            bool outsideX = (viewportPoint.x < safePadding.x) || (viewportPoint.x > 1f - safePadding.x);
+            bool outsideY = (viewportPoint.y < safePadding.y) || (viewportPoint.y > 1f - safePadding.y);
+            return outsideX || outsideY;
         }
+
+        private static Vector3 ClampViewportPoint(Vector3 viewportPoint, Vector2 padding)
+        {
+            var safePadding = ClampViewportPadding(padding);
+            return new Vector3(
+                Mathf.Clamp(viewportPoint.x, safePadding.x, 1f - safePadding.x),
+                Mathf.Clamp(viewportPoint.y, safePadding.y, 1f - safePadding.y),
+                viewportPoint.z
+            );
+        }
+
+        private static Vector2 ClampViewportPadding(Vector2 padding)
+        {
+            return new Vector2(
+                Mathf.Clamp(padding.x, 0f, 0.49f),
+                Mathf.Clamp(padding.y, 0f, 0.49f)
+            );
+        }
+
     }
 }

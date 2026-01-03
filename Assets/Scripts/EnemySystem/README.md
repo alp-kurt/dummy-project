@@ -20,6 +20,7 @@ A lightweight enemy pipeline tuned for horde-style gameplay: pooled views, a pre
 * **EnemyWaveConfig.cs** ScriptableObject describing which `EnemyStats` to spawn each wave, the interval between waves, and off-screen padding for spawn positions.
 * **EnemyStats.cs** is the designer-facing asset for per-enemy health, movement speed, damage, sprite, and scale.
 * **EnemyHealthBarView.cs** (optional) binds to the `EnemyView`'s model for UI feedback.
+* **EnemyRegistry.cs** tracks active/visible enemies via SignalBus for fast lookups (e.g., projectile targeting).
 
 ## Script Map
 ```
@@ -32,6 +33,7 @@ EnemySystem/
 ├── EnemyWaveSpawner.cs
 ├── EnemySystemInstaller.cs
 ├── EnemyHealthBarView.cs
+├── EnemyRegistry.cs
 └── EnemyFactory/
     ├── EnemyFactory.cs
     ├── EnemyHandle.cs

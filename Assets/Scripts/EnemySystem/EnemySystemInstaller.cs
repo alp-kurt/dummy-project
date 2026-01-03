@@ -49,6 +49,7 @@ namespace Scripts
                      .FromComponentInNewPrefab(_enemyPrefab)
                      .UnderTransform(_pooledParent);
             Container.Bind<IEnemyFactory>().To<EnemyFactory>().AsSingle();
+            Container.BindInterfacesTo<EnemyRegistry>().AsSingle().NonLazy();
 
             // ---- Simple spawner (MonoBehaviour in scene; no MVP) ----
             Container.BindInterfacesAndSelfTo<EnemyWaveSpawner>()
