@@ -2,6 +2,17 @@ using UnityEngine;
 
 namespace Scripts
 {
+    public struct ProjectileHitSignal
+    {
+        public ProjectileView View;
+        public IDamageable Target;
+    }
+
+    public struct ProjectileDespawnedSignal
+    {
+        public ProjectileView View;
+    }
+
     public struct BoltSpawnedSignal
     {
         public BoltView View;

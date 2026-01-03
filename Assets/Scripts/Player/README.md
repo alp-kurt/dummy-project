@@ -58,6 +58,10 @@ Scripts/Player
         IObservable<Vector2> OnInput { get; }
         // Emits normalized drag deltas while pressed. Resets to zero on release/pause.
 
+* Signals
+
+        PlayerDiedSignal
+        PlayerEnemyCollidedSignal
 ## Setup & Usage
 
 ### Physics Layers
@@ -82,3 +86,4 @@ Scripts/Player
 3. Ensure your Player GameObject has a `PlayerView` (Zenject resolves it via `FromComponentInHierarchy`).
 4. Optionally add `PlayerHealthBarView` to a UI object containing a `Slider`/`Image`; it auto-binds when instantiated with Zenject.
 5. Configure **Player Max Health** and **Player Move Speed** on the installer as needed.
+6. Signals are declared in `PlayerInstaller`; they are optional subscribers by default.

@@ -14,12 +14,14 @@ This module defines the core projectile architecture. It provides a reusable bas
     * Sprite rendering.
     * Collider + LayerMask filtering.
     * Publishes collision hits as IObservable<IDamageable>.
+    * Fires ProjectileHitSignal via SignalBus (optional subscribers).
     * Pooling-ready (OnRent / OnRelease).
 * Presenter layer (ProjectilePresenter):
     * Connects model and view.
     * Handles motion each frame (EveryUpdate).
     * Routes hits from view to damage targets.
     * Exposes DespawnRequested signal for pooling handles/factories.
+    * Fires ProjectileDespawnedSignal on despawn (optional subscribers).
     * Extensible via OnSpawned() and AttachToSpawn() for subclasses.
 * Interfaces:
     * IProjectileModel abstracts projectile state, speed, damage, and lifecycle.

@@ -23,6 +23,14 @@ namespace Scripts
             if (_playerMaxHealth < 1f || _playerMoveSpeed < 0f)
                 Debug.LogWarning($"[{nameof(PlayerInstaller)}] Clamping invalid config: MaxHealth={_playerMaxHealth}, MoveSpeed={_playerMoveSpeed}", this);
 
+            if (!Container.HasBinding<SignalBus>())
+            {
+                SignalBusInstaller.Install(Container);
+            }
+
+            Container.DeclareSignal<PlayerDiedSignal>().OptionalSubscriber();
+            Container.DeclareSignal<PlayerEnemyCollidedSignal>().OptionalSubscriber();
+
             // Views
             Container.BindInstance(_joystickView);
 

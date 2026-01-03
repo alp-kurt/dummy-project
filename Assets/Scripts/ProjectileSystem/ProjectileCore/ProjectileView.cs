@@ -1,6 +1,7 @@
 using System;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
@@ -18,6 +19,14 @@ namespace Scripts
 
         private readonly Subject<IDamageable> _hitTargets = new();
         public IObservable<IDamageable> HitTargets => _hitTargets;
+
+        private SignalBus _signalBus;
+
+        [Inject]
+        private void Construct(SignalBus signalBus)
+        {
+            _signalBus = signalBus;
+        }
 
         private Transform _cachedTransform;
         public Transform CachedTransform => _cachedTransform ? _cachedTransform : (_cachedTransform = transform);
@@ -66,6 +75,7 @@ namespace Scripts
             if (other.TryGetComponent<IDamageable>(out var damageable))
             {
                 _hitTargets.OnNext(damageable);
+                _signalBus.Fire(new ProjectileHitSignal { View = this, Target = damageable });
                 return;
             }
 
@@ -74,6 +84,7 @@ namespace Scripts
             if (dmgFromParent != null)
             {
                 _hitTargets.OnNext(dmgFromParent);
+                _signalBus.Fire(new ProjectileHitSignal { View = this, Target = dmgFromParent });
             }
         }
 

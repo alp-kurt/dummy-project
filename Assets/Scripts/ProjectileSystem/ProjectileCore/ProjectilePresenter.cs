@@ -9,6 +9,7 @@ namespace Scripts
     {
         protected readonly IProjectileModel _model;
         protected readonly ProjectileView _view;
+        private SignalBus _signalBus;
 
         // One-time wiring for the presenter's entire lifetime.
         private readonly CompositeDisposable _staticDisposer = new();
@@ -30,6 +31,12 @@ namespace Scripts
             _view = view;
         }
 
+        [Inject]
+        private void Construct(SignalBus signalBus)
+        {
+            _signalBus = signalBus;
+        }
+
         public virtual void Initialize()
         {
             _model.IsActiveRx
@@ -38,14 +45,7 @@ namespace Scripts
 
             _view.SetSprite(_model.Sprite);
 
-            // Route hits to damage delivery; guard with active.
-            _view.HitTargets
-                .Subscribe(target =>
-                {
-                    if (_model.IsActive)
-                        target.ReceiveDamage(_model.Damage);
-                })
-                .AddTo(_staticDisposer);
+            _signalBus.Subscribe<ProjectileHitSignal>(OnProjectileHit);
         }
 
         public void InitializeMotion(Vector3 spawnPosition, Vector3 directionNormalized)
@@ -87,6 +87,7 @@ namespace Scripts
             _spawnDisposer = null;
 
             _view.SetActive(false);
+            _signalBus.Fire(new ProjectileDespawnedSignal { View = _view });
         }
 
  
@@ -108,7 +109,15 @@ namespace Scripts
         {
             _spawnDisposer?.Dispose();
             _staticDisposer.Dispose();
+            _signalBus.Unsubscribe<ProjectileHitSignal>(OnProjectileHit);
             _despawnRequested.OnCompleted();
+        }
+
+        private void OnProjectileHit(ProjectileHitSignal signal)
+        {
+            if (signal.View != _view) return;
+            if (_model.IsActive)
+                signal.Target.ReceiveDamage(_model.Damage);
         }
     }
 }

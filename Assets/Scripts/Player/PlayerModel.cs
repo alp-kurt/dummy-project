@@ -1,6 +1,7 @@
 using System;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scripts
 {
@@ -20,6 +21,13 @@ namespace Scripts
         private readonly Subject<Unit> _died = new();
         public IObservable<Unit> Died => _died;
         private bool _isDead;
+        private SignalBus _signalBus;
+
+        [Inject]
+        public void Construct(SignalBus signalBus)
+        {
+            _signalBus = signalBus;
+        }
 
         public PlayerModel(float moveSpeed, float maxHealth)
         {
@@ -61,6 +69,7 @@ namespace Scripts
             _isDead = true;
             _currentHealth.Value = 0f;
             _died.OnNext(Unit.Default);
+            _signalBus.Fire(new PlayerDiedSignal { Model = this });
         }
 
         public void Dispose()

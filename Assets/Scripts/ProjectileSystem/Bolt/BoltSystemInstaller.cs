@@ -35,8 +35,10 @@ namespace Scripts
                 SignalBusInstaller.Install(Container);
             }
 
-            Container.DeclareSignal<BoltSpawnedSignal>();
-            Container.DeclareSignal<BoltReturnedToPoolSignal>();
+            Container.DeclareSignal<ProjectileHitSignal>().OptionalSubscriber();
+            Container.DeclareSignal<ProjectileDespawnedSignal>().OptionalSubscriber();
+            Container.DeclareSignal<BoltSpawnedSignal>().OptionalSubscriber();
+            Container.DeclareSignal<BoltReturnedToPoolSignal>().OptionalSubscriber();
 
             Container.Bind<Transform>()
                      .WithId("PooledBoltsRoot")
