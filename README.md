@@ -16,7 +16,7 @@ The project is split into feature-focused folders, each documenting their respon
 
 ## Getting Started
 
-Open the project with Unity 2022.3 LTS or newer. For detailed setup (layers, installers, ScriptableObject configs) refer to the main [Assets/README](Assets/README.md).
+Open the project with Unity 6000.3.2f1 LTS or newer. For detailed setup (layers, installers, ScriptableObject configs) refer to the main [Assets/README](Assets/README.md).
 
 ## Branches
 
